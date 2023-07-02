@@ -1,0 +1,4 @@
+Ads
+Shuffle
+real-time tracking of playlists
+mapping the scroll wheel to volume slider when the mouse is over the dial?

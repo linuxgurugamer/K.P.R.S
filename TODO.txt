@@ -1,0 +1,75 @@
+
+KPRS - Kerbal Public Radio Service
+
+BUGS
+
+Reverting a flight back to launch messed up ui
+
+
+TODO
+
+Test reverts to editro and reverts to flight
+
+
+Transmitter part
+
+MM cfg to patch antennas to add RadioPartModule to each antenna
+
+Define a config file which would specify the audio file, the station name, and where it is
+Read that file
+
+Create a button for the radio station
+
+Antenna module, to specify if it can receive the radio stations
+
+calculate distance from where you are to the station
+Create a window to allow selection of station.  I can think of a few ways to do that, a simple list box, a scrolling box which shows just a few, etc
+Calculate the audio volume of the station
+Calculate the audio volume of the static
+Play the file
+
+Soundtrack Config
+STATION
+{
+	name =
+	repeat = yes/no
+	repeatDelay = 
+	playlist = 
+	location =
+	interplanetary = yes/no
+	// range = 
+	power = 		// Transmission power
+}
+
+KPRS_PLAYLIST
+{
+	name = Construction
+	loop = True
+	shuffle = True
+	preloadTime = 5
+	pauseOnGamePause = True
+	disableAfterPlay = False
+	TRACKS
+	{
+		track = KSP_Construction01
+		track = KSP_Construction02
+		track = KSP_Construction03
+		track = Groove Grove
+		track = Brittle Rille
+		track = Investigations
+	}
+}
+
+PartModules
+
+TransmitterPartModule
+{
+	name = 
+	id = 			// used to store id of station assocated with this transmitter
+}
+
+RadioPartModule
+{
+	name = 
+	power =			// Preamp power
+}

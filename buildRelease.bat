@@ -23,7 +23,7 @@ rem    but not always
 rem LICENSE is the license file
 rem README is the readme file
 
-set GAMEDIR="K.P.R.S"
+set GAMEDIR="KPRS"
 set GAMEDATA="GameData\"
 set VERSIONFILE=%GAMEDIR%.version
 set LICENSE=License.md
@@ -61,6 +61,7 @@ del tmp.version
 set VERSION=%major%.%minor%.%patch%
 if "%build%" NEQ "0"  set VERSION=%VERSION%.%build%
 
+if "%ALPHA%" NEQ "" set VERSION=%VERSION%%ALPHA%
 echo Version:  %VERSION%
 
 

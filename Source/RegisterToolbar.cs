@@ -30,6 +30,13 @@ namespace KPRS
             labelFontBoldBlue = new GUIStyle(GUI.skin.label);
             labelFontBoldBlue.fontStyle = FontStyle.Bold;
             labelFontBoldBlue.normal.textColor = Color.blue;
+
+            labelFontBoldLarge = new GUIStyle(GUI.skin.label);
+            labelFontBoldLarge.fontStyle = FontStyle.Bold;
+            labelFontBoldLarge.fontSize = 22;
+
+            vertScrollbarStyle = new GUIStyle(GUI.skin.verticalScrollbar);
+
         }
 
         void Start()
@@ -37,12 +44,15 @@ namespace KPRS
             ToolbarControl.RegisterMod(KPBR.MODID, KPBR.MODNAME);
             InitLog();
             LoadConfigs.GetConfigs();
+
         }
 
 #if true
         bool initted = false;
         internal static GUIStyle labelFontBoldYellow;
         internal static GUIStyle labelFontBoldBlue;
+        internal static GUIStyle vertScrollbarStyle;
+        internal static GUIStyle labelFontBoldLarge;
 
         void OnGUI()
         {

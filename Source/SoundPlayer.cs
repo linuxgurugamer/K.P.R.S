@@ -11,14 +11,13 @@ using static KPRS.RegisterToolbar;
 
 namespace KPRS
 {
-    internal class SoundPlayer: MonoBehaviour
+    internal class SoundPlayer : MonoBehaviour
     {
-        internal static SoundPlayer Instance;
+        internal SoundPlayer Instance;
         GameObject soundPlayerObject;
         AudioSource audioSource;
         AudioClip loadedClip;
-        AudioClip alternativeClip;
-        int altSoundCount;
+        string clipName = "";
 
         void Awake()
         {
@@ -27,28 +26,35 @@ namespace KPRS
             Log.Info("SoundPlayer.Awake");
         }
 
-        bool loadingSong = false;
-
-        public void LoadClipFromFile(string path)
+        public void LoadClipFromFile(string path, bool alternative = false)
         {
             StartCoroutine(LoadClipCoroutine(path));
         }
 
         IEnumerator LoadClipCoroutine(string path)
         {
-            Log.Error("LoadClipCoroutine, path: " + path);
-            StopSound();
-            loadingSong = true;
-            string url = string.Format("file://{0}", path);
-            WWW www = new WWW(url);
-            yield return www;
+#if false
+            Log.Info("LoadClipCoroutine, path: " + path + ", exists: " + System.IO.File.Exists(path));
+#endif
 
-            loadedClip = www.GetAudioClip(false, false);
-            if (loadedClip == null)
-                Log.Error("LoadClipCoroutine LoadedClip is null");
+            StopSound();
+            //loadingSong = true;
+            string url = string.Format("file://{0}", path);
+            clipName = url;
+#pragma warning disable 0618
+            WWW www = new WWW(url);
+#pragma warning restore 0618
+            yield return www;
+            {
+                loadedClip = www.GetAudioClip(false, false, AudioType.OGGVORBIS);
+                if (loadedClip == null)
+                    Log.Error("LoadClipCoroutine LoadedClip is null, path: " + path);
+            }
+#if false
             else
-                Log.Error("LoadClipCoroutine Clip loaded from file");
-            loadingSong = false;
+                Log.Info("LoadClipCoroutine Clip loaded from file");
+#endif
+            //loadingSong = false;
         }
 
         internal SoundPlayer()
@@ -60,58 +66,62 @@ namespace KPRS
             Log.Info("Destroying SoundPlayer");
         }
 
-        public void PlaySound(bool alternative = false)
+        public void PlaySound()
         {
-            Log.Info("SoundPlayer.PlaySound");
 #if false
-            if (audioSource == null)
-            {
-                Log.Error("source.audio is null");
-                audioSource = soundPlayerObject.AddComponent<AudioSource>();
-                if (audioSource != null)
-                {
-                    audioSource.volume = 0.5f;
-                    audioSource.spatialBlend = 0;
-                }
-                else
-                    Log.Error("Unable to add component AudioSource");
-
-            }
+            Log.Info("SoundPlayer.PlaySound");
 #endif
             if (loadedClip == null)
             {
-                Log.Error("PlaySound loadedClip is null");
+                Log.Error("PlaySound loadedClip is null: " + clipName);
                 return;
             }
-            if (alternative)
-                audioSource.clip = alternativeClip;
-            else
+
+            if (audioSource != null)
+            {
                 audioSource.clip = loadedClip;
-            if (audioSource.clip != null && !audioSource.isPlaying)
-                audioSource.Play();
+
+                if (audioSource.clip != null && !audioSource.isPlaying)
+                    audioSource.Play();
+#if false
+                Log.Info("audioSource.Volume: " + audioSource.volume);
+#endif
+            }
         }
+
         public void SetVolume(float vol)
         {
-            audioSource.volume = vol / 100;
+            if (audioSource != null)
+            {
+                audioSource.volume = vol / 100f;
+                //Log.Info("SetVolume.audioSource.Volume: " + audioSource.volume);
+            }
         }
 
         public void ToggleSound()
         {
-            if (audioSource.clip != null)
+            if (audioSource != null && audioSource.clip != null)
             {
                 if (SoundPlaying())
+                {
                     audioSource.Stop();
+                }
                 else
+                {
                     audioSource.Play();
-            }
 
+                    Log.Info("audioSource.Volume: " + audioSource.volume);
+                }
+            }
         }
         public void StopSound()
         {
-            if (audioSource.clip != null)
+            if (audioSource != null && audioSource.clip != null)
             {
                 if (SoundPlaying())
+                {
                     audioSource.Stop();
+                }
             }
 
         }
@@ -136,43 +146,46 @@ namespace KPRS
 
         public void LoadNewSound(string soundPath, bool alternative = false)
         {
-            Log.Info("LoadNewSound, soundPath: " + soundPath + ", exists: " + GameDatabase.Instance.ExistsAudioClip(soundPath));
-            //if (alternative)
-            //    alternativeClip = GameDatabase.Instance.GetAudioClip(soundPath);
-            //else
-            //    loadedClip = GameDatabase.Instance.GetAudioClip(soundPath);
-
+            Log.Info("LoadNewSound, soundPath: " + soundPath);
             string fullSoundPath = KSPUtil.ApplicationRootPath + "GameData/" + soundPath;
             Log.Info("fullSoundPath: " + fullSoundPath);
 
-            //if (loadedClip == null)
-                LoadClipFromFile(fullSoundPath + ".ogg");
+            //if (soundPath.Contains("static"))
+            //    LoadClipFromFile(fullSoundPath + ".mp3", alternative);
+            //else
+            LoadClipFromFile(fullSoundPath + ".ogg", alternative);
+
         }
 
-        public void Initialize(string soundPath="")
+        public void Initialize(string soundPath = "")
         {
-            Log.Info("SoundPlayer.Start, soundPath: " + soundPath);
+            if (soundPlayerObject == null)
+            {
+                Log.Info("SoundPlayer.Start, soundPath: " + soundPath);
 
-            soundPlayerObject = new GameObject("KPRSsoundPlayer"); //Makes the GameObject
+                soundPlayerObject = new GameObject("KPRSsoundPlayer"); //Makes the GameObject
 
-            //Initializing stuff;
-            
+                //Initializing stuff;
+
                 audioSource = soundPlayerObject.AddComponent<AudioSource>();
                 if (audioSource != null)
                 {
                     audioSource.volume = 0.5f;
                     audioSource.spatialBlend = 0;
                     audioSource.loop = false;
+
+
                 }
                 else
-                    Log.Error("Unable to add component AudioSource");
-                if (soundPath!="")
-                {
-                    LoadClipFromFile(soundPath);                    
-                }
-            Log.Info("Initialized Sound Player");
-        }
+                    Log.Error("Unable to add component AudioSource for audioSource");
 
+                if (soundPath != "")
+                {
+                    LoadClipFromFile(soundPath);
+                }
+                Log.Info("Initialized Sound Player");
+            }
+        }
     }
 
 }

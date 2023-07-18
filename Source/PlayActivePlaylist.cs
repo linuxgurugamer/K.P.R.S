@@ -12,6 +12,7 @@ namespace KPRS
 
         internal void ToggleShuffle()
         {
+            Log.Info("ToggleShuffle");
             Shuffle = !Shuffle;
             Play();
         }
@@ -28,29 +29,29 @@ namespace KPRS
         ~PlayActivePlaylist()
         {
             Log.Info("~PlayActivePlaylist");
-            KPBR.soundplayer.StopSound();
-            activePlaylist = null;
-            playlist = null;
         }
 
         internal void ShufflePlaylist()
         {
-            this.activePlaylist = new List<string>(playlist);
+            Log.Info("ShufflePlaylist");
+              KPBR.soundPlayer.StopSound();
+          this.activePlaylist = new List<string>(playlist);
             activePlaylist.Shuffle();
+            Play();
         }
 
         internal void Play()
         {
-            if (activePlaylist != null && !KPBR.soundplayer.SoundPlaying())
+            if (activePlaylist != null && !KPBR.soundPlayer.SoundPlaying())
             {
                 if (activePlaylist.Count > 0)
                 {
-                    if (KPBR.soundplayer.SoundPlaying())
+                    if (KPBR.soundPlayer.SoundPlaying())
                     { 
-                        KPBR.soundplayer.StopSound();
+                        KPBR.soundPlayer.StopSound();
                     }
-                    KPBR.soundplayer.LoadNewSound(activePlaylist[0]);
-                    KPBR.soundplayer.PlaySound();
+                    KPBR.soundPlayer.LoadNewSound(activePlaylist[0]);
+                    KPBR.soundPlayer.PlaySound();
                     activePlaylist.RemoveAt(0);
                 }
                 else
@@ -60,7 +61,10 @@ namespace KPRS
                         ShufflePlaylist();
                     }
                     else
+                    {
+                        KPBR.soundPlayer.StopSound();
                         this.activePlaylist = new List<string>(playlist);
+                    }
                 }
             }
         }

@@ -53,10 +53,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="GameSettings.cs" />
     <Compile Include="K.P.B.R.cs" />
     <Compile Include="InstallChecker.cs" />
     <Compile Include="LoadConfigs.cs" />
+    <Compile Include="PartModules\AttachNodeOnExtended.cs" />
+    <Compile Include="PartModules\ModuleAntenna.cs" />
     <Compile Include="PartModules\RadioPartModule.cs" />
+    <Compile Include="PartModules\TransmitterAmplifier.cs" />
     <Compile Include="PartModules\TransmitterPartModule.cs" />
     <Compile Include="PlayActivePlaylist.cs" />
     <Compile Include="PlayList.cs" />

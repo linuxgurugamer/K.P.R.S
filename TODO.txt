@@ -62,7 +62,7 @@ KPRS_PLAYLIST
 
 PartModules
 
-TransmitterPartModule
+KPBR_TransmitterPartModule
 {
 	name = 
 	id = 			// used to store id of station assocated with this transmitter

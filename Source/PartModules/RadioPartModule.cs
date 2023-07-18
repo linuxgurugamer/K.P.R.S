@@ -8,11 +8,11 @@ using static KPRS.RegisterToolbar;
 
 namespace KPRS.PartModules
 {
+    //
+    // This module is added by a ModuleManager script toall parts which have a DataTransmitter
+    //
     internal class RadioPartModule : PartModule, IModuleInfo
     {
-
-
-
         [KSPField(isPersistant =true)]
         internal float power = 1;// Preamp power
 
@@ -39,6 +39,11 @@ namespace KPRS.PartModules
         [KSPField(isPersistant = true)]
         internal string preset5 = "";
 
+        [KSPField(isPersistant = true)]
+        int volume = 4;     //multiplied by 12.5 to get a number between 0 and 100
+
+        [KSPField(isPersistant = true)]
+        internal float preampPower = 0f;
         void Start()
         {
             Log.Info("RadioPartModule.Start");

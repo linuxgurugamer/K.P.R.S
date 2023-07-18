@@ -41,7 +41,7 @@ namespace KPRS
     internal class InstallChecker : MonoBehaviour
     {
         private const string MODNAME = "K.P.R.S.";
-        private const string FOLDERNAME = "K.P.R.S";
+        private const string FOLDERNAME = "KPRS";
         private const string EXPECTEDPATH = FOLDERNAME + "/Plugins";
 
         protected void Start()

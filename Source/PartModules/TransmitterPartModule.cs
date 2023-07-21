@@ -14,8 +14,6 @@ namespace KPRS.PartModules
 {
     public class KPBR_TransmitterPartModule : PartModule, IModuleInfo
     {
-        bool active = true;
-
         internal bool StationSelected { get { return selectedStation != null && selectedStation.Length > 0; } }
 
         [KSPField(isPersistant = true, guiName = "Radio station")]
@@ -31,7 +29,7 @@ namespace KPRS.PartModules
         public double consumeRate = 2f;
 
         [KSPField(isPersistant = true)]
-        bool Active = false;
+        public bool Active = false;
 
         internal bool LocationSelected { get { return location != null && location.Length > 0; } }
 
@@ -101,7 +99,7 @@ namespace KPRS.PartModules
             if (IsTransmitter())
             {
                 transmitterPartList = new List<Part>();
-                active = true;
+                Active = true;
                 int activeCnt = 0;
 
                 var mList = vessel.FindPartModulesImplementing<KPBR_TransmitterPartModule>();
@@ -112,7 +110,7 @@ namespace KPRS.PartModules
                         transmitterPartList.Add(m.part);
                         if (m.location != "")
                         {
-                            active = false;
+                            Active = false;
                             activeCnt++;
                         }
                     }
@@ -123,7 +121,7 @@ namespace KPRS.PartModules
                 }
                 if (activeCnt > 1)
                 {
-                    Log.Error("TransmitterPartModule, Multiple active radio transmitters found on vessel");
+                    Log.Info("TransmitterPartModule, Multiple active radio transmitters found on vessel");
                 }
                 var aList = vessel.FindPartModulesImplementing<KPBR_TransmitterAmplifier>();
                 foreach (var a in aList)
@@ -373,12 +371,14 @@ namespace KPRS.PartModules
 
         public void FixedUpdate()
         {
-            double PowerDemand = part.RequestResource("ElectricCharge", consumeRate * TimeWarp.deltaTime);
-            if (PowerDemand < consumeRate * TimeWarp.deltaTime)
+            if (location != null)
             {
-                Active = false;
+                double PowerDemand = part.RequestResource("ElectricCharge", consumeRate * TimeWarp.deltaTime);
+                if (PowerDemand < consumeRate * TimeWarp.deltaTime)
+                {
+                    Active = false;
+                }
             }
-
         }
 
 #if false

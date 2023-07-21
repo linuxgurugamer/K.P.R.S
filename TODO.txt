@@ -3,7 +3,7 @@ KPRS - Kerbal Public Radio Service
 
 BUGS
 
-Reverting a flight back to launch messed up ui
+Intro not playing when switching to new station
 
 
 TODO

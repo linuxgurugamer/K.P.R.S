@@ -12,7 +12,9 @@ namespace KPRS
         internal Vessel vessel;
         internal float towerHeight;
 
-        internal Transmitter(string selStat, string loc = null, Vessel vessel = null)
+        internal bool Active { get; set; }
+
+        internal void InitTransmitter(string selStat, string loc = null, Vessel vessel = null)
         {
             location = loc;
             selectedStation = selStat;
@@ -20,17 +22,29 @@ namespace KPRS
             GetTowerHeight();
         }
 
+        internal Transmitter(string selStat, string loc, Vessel vessel, bool active)
+        {
+            InitTransmitter(selStat, loc, vessel);
+            Active = active;
+        }
+
         internal Transmitter(KPBR_TransmitterPartModule t)
         {
-            location = t.location;
-            selectedStation = t.selectedStation;
-            this.vessel = t.part.vessel;
-            GetTowerHeight();
+            InitTransmitter( t.selectedStation, t.location,t.part.vessel);
+
+            //location = t.location;
+            //selectedStation = t.selectedStation;
+            //this.vessel = t.part.vessel;
+            Active = t.Active;
+
+            //GetTowerHeight();
         }
 
         internal void GetTowerHeight()
         {
+#if false
             Log.Info("GetTowerHeight");
+#endif
             towerHeight = 0;
             if (vessel.loaded)
             {
@@ -39,7 +53,9 @@ namespace KPRS
                 {
                     towerHeight += a.height;
                 }
-                Log.Info("Transmitter, vessel: " + vessel.name + ", Num AntennaModules: " + t.Count + ", towerHeight: " + towerHeight);
+ #if false
+               Log.Info("Transmitter, vessel: " + vessel.name + ", Num AntennaModules: " + t.Count + ", towerHeight: " + towerHeight);
+#endif
             }
             else
             {
@@ -54,8 +70,8 @@ namespace KPRS
                 }
                 else
                     Log.Info("Unloaded: " + vessel.loaded + ": " + vessel.vesselName + ", no KPRS_ModuleAntenna found");
-#endif
                 Log.Info("Transmitter, Unloaded: " + vessel.vesselName);
+#endif
 
                 for (int idx3 = 0; idx3 < vessel.protoVessel.protoPartSnapshots.Count; idx3++)
                 {
@@ -70,8 +86,10 @@ namespace KPRS
                         {
                             float height = module.moduleValues.SafeLoad("height", -1f);
                             towerHeight += height;
-                            Log.Info("Antenna, from protoVessel.protoPartSnapshots, height: " + height);
+ #if false
+                           Log.Info("Antenna, from protoVessel.protoPartSnapshots, height: " + height);
                             //DumpConfigNode(module.moduleValues);
+#endif
                         }
                     }
                 }

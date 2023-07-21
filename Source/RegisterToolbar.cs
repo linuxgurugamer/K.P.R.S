@@ -35,6 +35,10 @@ namespace KPRS
             labelFontBoldLarge.fontStyle = FontStyle.Bold;
             labelFontBoldLarge.fontSize = 22;
 
+            labelFontBoldRed = new GUIStyle(GUI.skin.label);
+            labelFontBoldRed.fontStyle = FontStyle.Bold;
+            labelFontBoldRed.normal.textColor = Color.red;
+
             vertScrollbarStyle = new GUIStyle(GUI.skin.verticalScrollbar);
 
         }
@@ -50,6 +54,7 @@ namespace KPRS
 #if true
         bool initted = false;
         internal static GUIStyle labelFontBoldYellow;
+        internal static GUIStyle labelFontBoldRed;
         internal static GUIStyle labelFontBoldBlue;
         internal static GUIStyle vertScrollbarStyle;
         internal static GUIStyle labelFontBoldLarge;

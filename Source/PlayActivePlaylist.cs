@@ -6,64 +6,121 @@ namespace KPRS
 {
     public class PlayActivePlaylist
     {
-        List<string> activePlaylist = new List<string>();
-        List<string> playlist;
+        List<string> activePlaylistTracks = new List<string>();
+        List<string> playlistTracks;
+        PlayList playlist;
         internal bool Shuffle { get; set; }
 
         internal void ToggleShuffle()
         {
+#if false
             Log.Info("ToggleShuffle");
+#endif
             Shuffle = !Shuffle;
-            Play();
+            Play("ToggleShuffle");
         }
 
         internal PlayActivePlaylist(string caller, PlayList playlist)
         {
+#if false
             Log.Info("PlayActivePlayList, caller: " + caller);
-            this.activePlaylist = new List<string>(playlist.tracks);
-            this.playlist = playlist.tracks;
+#endif
+            NewPlayActivePlaylist("PlayActivePlaylist", playlist);
+
+#if false
+            this.activePlaylistTracks = new List<string>(playlist.tracks);
+            this.playlistTracks = playlist.tracks;
             foreach (var a in playlist.tracks)
                 Log.Info("Playlist: " + a.ToString());
+            this.playlist = playlist;
+#endif
         }
 
+        internal void Clear(string caller)
+        {
+            if (activePlaylistTracks != null)
+                activePlaylistTracks.Clear();
+            this.playlist = null;
+            this.playlistTracks = null;
+        }
+
+        internal void NewPlayActivePlaylist(string caller, PlayList playlist)
+        {
+#if false
+            Log.Info("NewPlayActivePlaylist, caller: " + caller + ", playlist name: " + playlist.name);
+#endif
+            Clear("NewPlayActivePlayList");
+
+            this.activePlaylistTracks = new List<string>(playlist.tracks);
+            this.playlistTracks = playlist.tracks;
+#if false
+            foreach (var a in playlist.tracks)
+                Log.Info("Playlist: " + a.ToString());
+#endif
+            this.playlist = playlist;
+        }
+
+#if false
         ~PlayActivePlaylist()
         {
-            Log.Info("~PlayActivePlaylist");
+            Log.Info("~PlayActivePlaylist, playlist: " + this.playlist.name);
         }
+#endif
 
         internal void ShufflePlaylist()
         {
+#if false
             Log.Info("ShufflePlaylist");
-              KPBR.soundPlayer.StopSound();
-          this.activePlaylist = new List<string>(playlist);
-            activePlaylist.Shuffle();
-            Play();
+#endif
+            KPBR.soundPlayer.StopSound();
+
+            this.activePlaylistTracks = new List<string>(playlistTracks);
+            activePlaylistTracks.Shuffle();
+            Play("ShufflePlaylist");
         }
 
-        internal void Play()
+        internal void Play(string caller)
         {
-            if (activePlaylist != null && !KPBR.soundPlayer.SoundPlaying())
+#if false
+            Log.Info("PlayActivePlaylist caller: " + caller);
+#endif
+            if (activePlaylistTracks != null && !KPBR.soundPlayer.SoundPlaying() && !KPBR.soundPlayer.loadingSong)
             {
-                if (activePlaylist.Count > 0)
+                if (KPBR.soundPlayer.readyToPlay)
                 {
-                    if (KPBR.soundPlayer.SoundPlaying())
-                    { 
-                        KPBR.soundPlayer.StopSound();
-                    }
-                    KPBR.soundPlayer.LoadNewSound(activePlaylist[0]);
-                    KPBR.soundPlayer.PlaySound();
-                    activePlaylist.RemoveAt(0);
+                    KPBR.soundPlayer.PlaySound("Play");
+                    
                 }
                 else
                 {
-                    if (Shuffle)
+                    if (activePlaylistTracks.Count > 0)
                     {
-                        ShufflePlaylist();
+#if false
+                    if (KPBR.soundPlayer.SoundPlaying())
+                    {
+                        KPBR.soundPlayer.StopSound();
+                    }
+#endif
+                        KPBR.soundPlayer.PlaySound("PlayActivePlaylist.Play, removing item from index 0");
+                        KPBR.soundPlayer.LoadNewSound(activePlaylistTracks[0]);
+                        activePlaylistTracks.RemoveAt(0);
                     }
                     else
                     {
-                        KPBR.soundPlayer.StopSound();
-                        this.activePlaylist = new List<string>(playlist);
+                        if (Shuffle)
+                        {
+                            ShufflePlaylist();
+                        }
+                        else
+                        {
+                            KPBR.soundPlayer.StopSound();
+                            if (playlistTracks != null)
+                                this.activePlaylistTracks = new List<string>(playlistTracks);
+                            else
+                            {
+                                this.activePlaylistTracks = new List<string>();
+                            }
+                        }
                     }
                 }
             }

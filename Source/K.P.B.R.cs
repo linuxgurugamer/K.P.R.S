@@ -8,6 +8,8 @@ using System.Collections;
 using static KPRS.RegisterToolbar;
 using KPRS.PartModules;
 using static ConfigNode;
+using UnityEngine.UI;
+using System;
 
 namespace KPRS
 {
@@ -63,8 +65,11 @@ namespace KPRS
         {
             GameObject myplayer = new GameObject();
             soundPlayer = myplayer.AddComponent<SoundPlayer>();
+            soundPlayer.Name = "soundPlayer";
 
             staticSoundPlayer = myplayer.AddComponent<SoundPlayer>();
+            staticSoundPlayer.Name = "staticSoundPlayer";
+
             gameSettings = new GameSettings();
 
         }
@@ -75,7 +80,8 @@ namespace KPRS
             {
                 soundPlayer.StopSound();
                 staticSoundPlayer.StopSound();
-                playActivePlaylist = null;
+                if (playActivePlaylist != null)
+                    playActivePlaylist.Clear("onGameSceneLoadRequested");
             }
         }
 
@@ -97,8 +103,8 @@ namespace KPRS
             {
                 soundPlayer.StopSound();
                 staticSoundPlayer.StopSound();
-                playActivePlaylist = null;
-                activeRadioAntenna = null;
+                if (playActivePlaylist != null)
+                    playActivePlaylist.Clear("onVesselChange");
             }
         }
 
@@ -212,8 +218,8 @@ namespace KPRS
                 {
                     if (playActivePlaylist != null && playerOn)
                     {
-                        playActivePlaylist.Play();
-                        staticSoundPlayer.PlaySound();
+                        playActivePlaylist.Play("SlowUpdate");
+                        staticSoundPlayer.PlaySound("SlowUpdate");
                     }
                 }
                 yield return new WaitForSeconds(1f);
@@ -252,10 +258,15 @@ namespace KPRS
                             {
                                 var Distance = Vector3d.Distance(v.GetVessel().GetWorldPos3D(), vessel.GetWorldPos3D());
 
-                                Log.Info("SlowUpdate, Vessel.name: " + vessel.vesselName + ", Distance: " + Distance);
+ #if false
+                               Log.Info("SlowUpdate, Vessel.name: " + vessel.vesselName + ", Distance: " + Distance);
+#endif
+
                                 if (vessel.loaded)
                                 {
-                                    var t = vessel.FindPartModuleImplementing<KPBR_TransmitterPartModule>();
+                                    var transmitterPartModuleList = vessel.FindPartModulesImplementing<KPBR_TransmitterPartModule>();
+                                    foreach (var transmitterPartModule in transmitterPartModuleList)
+                                    {
 #if false
                                     if (t != null)
                                     {
@@ -265,40 +276,41 @@ namespace KPRS
                                     else
                                         Log.Info("vesselLoaded: " + vessel.loaded + ": " + vessel.vesselName + ", no KPBR_TransmitterPartModule found");
 #endif
-                                    if (t != null && t.StationSelected && t.LocationSelected)
-                                    {
+                                        if (transmitterPartModule != null && transmitterPartModule.StationSelected && transmitterPartModule.LocationSelected)
+                                        {
 #if false
                                         Log.Info("Loaded, antenna, selectedStation: " + t.selectedStation + ", location: " + t.location);
 #endif
 
-                                        Statics.transmitterList[t.selectedStation] = new Transmitter(t);
-                                        if (Statics.stationList.ContainsKey(t.selectedStation))
-                                            Statics.stationList[t.selectedStation].selected = true;
+                                            Statics.transmitterList[transmitterPartModule.selectedStation] = new Transmitter(transmitterPartModule);
+                                            if (Statics.stationList.ContainsKey(transmitterPartModule.selectedStation))
+                                                Statics.stationList[transmitterPartModule.selectedStation].selected = true;
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    var transmitterParts = vessel.FindPartModuleImplementing<KPBR_TransmitterPartModule>();
-
 #if false
-
-                                    if (transmitterParts != null)
+                                    var transmitterPartsList = vessel.FindPartModulesImplementing<KPBR_TransmitterPartModule>();
+                                    foreach (var transmitterPart in transmitterPartsList)
                                     {
-                                        Log.Info("Unloaded: " + vessel.loaded + ": " + vessel.vesselName);
-                                        Log.Info("StationSelected: " + transmitterParts.StationSelected + ", LocationSelected: " + transmitterParts.LocationSelected);
-                                    }
-                                    else
-                                        Log.Info("Unloaded: " + vessel.loaded + ": " + vessel.vesselName + ", no KPBR_TransmitterPartModule found");
 
-#endif
-                                    if (transmitterParts != null && transmitterParts.StationSelected && transmitterParts.LocationSelected)
-                                    {
-                                        Statics.transmitterList[transmitterParts.selectedStation] = new Transmitter(transmitterParts);
-#if false
-                                        Log.Info("Unloaded, antenna, selectedStation: " + transmitterParts.selectedStation + ", location: " + transmitterParts.location);
-#endif
-                                    }
 
+                                        if (transmitterPart != null)
+                                        {
+                                            Log.Info("Unloaded: " + vessel.loaded + ": " + vessel.vesselName);
+                                            Log.Info("StationSelected: " + transmitterPart.StationSelected + ", LocationSelected: " + transmitterPart.LocationSelected);
+                                        }
+                                        else
+                                            Log.Info("Unloaded: " + vessel.loaded + ": " + vessel.vesselName + ", no KPBR_TransmitterPartModule found");
+
+                                        if (transmitterPart != null && transmitterPart.StationSelected && transmitterPart.LocationSelected)
+                                        {
+                                            Statics.transmitterList[transmitterPart.selectedStation] = new Transmitter(transmitterPart);
+                                            Log.Info("Unloaded, antenna, selectedStation: " + transmitterPart.selectedStation + ", location: " + transmitterPart.location);
+                                        }
+                                    }
+#endif
 
                                     for (int idx3 = 0; idx3 < vessel.protoVessel.protoPartSnapshots.Count; idx3++)
                                     {
@@ -314,10 +326,11 @@ namespace KPRS
                                                 string selectedStation = module.moduleValues.SafeLoad("selectedStation", "");
                                                 bool stationSelected = (selectedStation.Length > 0);
                                                 string location = module.moduleValues.SafeLoad("location", "");
+                                                bool active = module.moduleValues.SafeLoad("active", true);
                                                 bool locationSelected = (location.Length > 0);
                                                 if (stationSelected && locationSelected)
                                                 {
-                                                    Statics.transmitterList[selectedStation] = new Transmitter(selectedStation, location, vessel);
+                                                    Statics.transmitterList[selectedStation] = new Transmitter(selectedStation, location, vessel, active);
 #if false
                                                     Log.Info("Unloaded, antenna, selectedStation: " + selectedStation + ", location: " + location);
 #endif
@@ -338,10 +351,14 @@ namespace KPRS
                             if (Statics.stationList.ContainsKey(activeRadioAntenna.selectedStation) &&
                                     Statics.playlist.ContainsKey(Statics.stationList[activeRadioAntenna.selectedStation].playlist))
                             {
- #if false
+#if false
                                Log.Info("SelectedStation: " + activeRadioAntenna.selectedStation);
 #endif
-                                playActivePlaylist = new PlayActivePlaylist("SlowUpdate",
+                                if (playActivePlaylist == null)
+                                    playActivePlaylist = new PlayActivePlaylist("SlowUpdate",
+                                        Statics.playlist[Statics.stationList[activeRadioAntenna.selectedStation].playlist]);
+                                else
+                                    playActivePlaylist.NewPlayActivePlaylist("SlowUpdate",
                                     Statics.playlist[Statics.stationList[activeRadioAntenna.selectedStation].playlist]);
                             }
                         }
@@ -417,25 +434,34 @@ namespace KPRS
 
 #if false
         public float angle = 15f;
-        public Vector2 size;
-        Vector2 pos = new Vector2(0, 0);
-        Rect rect;
-        Vector2 pivot;
-        void InitDialInfo()
+        bool doRotate = false;
+        void InitDialInfo(ref Texture2D dialImg, Vector2 size, out Vector2 pivot)
         {
             //GUI.DrawTexture(new Rect(632, 185, 150, 150), dialImg);
 
             size = new Vector2(dialImg.width, dialImg.height);
-            var pos = new Vector2(0,0);
+            var pos = new Vector2(0, 0);
             var rect = new Rect(pos.x - size.x * 0.5f, pos.y - size.y * 0.5f, size.x, size.y);
-            var pivot = new Vector2(rect.xMin + rect.width * 0.5f, rect.yMin + rect.height * 0.5f);
+            pivot = new Vector2(rect.xMin + rect.width * 0.5f, rect.yMin + rect.height * 0.5f);
+        }
+
+        void RotateImage( ref Texture2D dialImg, Vector2 size,float angle)
+        {
+            Vector2 pivot;
+
+            InitDialInfo(ref dialImg, size, out pivot);
+            //Matrix4x4 matrixBackup = GUI.matrix;
+            GUIUtility.RotateAroundPivot(angle, pivot);
+            GUI.DrawTexture(new Rect(632, 185, 150, 150), dialImg);
+            //GUI.matrix = matrixBackup;
         }
 #endif
 
         void PlaySelectedStation(string selectedStation)
         {
-            Log.Info("PlaySelectedStation");
-
+            Log.Info("PlaySelectedStation, selectedStation: " + selectedStation);
+            if (activeRadioAntenna.selectedStation != "")
+                ClearSelectedStation(selectedStation);
             activeRadioAntenna.selectedStation = selectedStation;
             if (!Statics.stationList.ContainsKey(selectedStation))
                 Log.Error("Station not found in stationlist: " + selectedStation);
@@ -446,11 +472,16 @@ namespace KPRS
             if (playActivePlaylist != null)
             {
                 soundPlayer.StopSound();
-                playActivePlaylist = null;
+                playActivePlaylist.NewPlayActivePlaylist("PlaySelectedStation", Statics.playlist[s.playlist]);
             }
-            Log.Info("After destroying playActivePlayList");
-            playActivePlaylist = new PlayActivePlaylist("PlaySelectedStation", Statics.playlist[s.playlist]);
+            else
+                playActivePlaylist = new PlayActivePlaylist("PlaySelectedStation", Statics.playlist[s.playlist]);
             playerOn = true;
+        }
+
+        void ClearSelectedStation(string selectedStation)
+        {
+            playActivePlaylist.Clear("ClearSelectedStation, activeRadioAntenna.selectedStation: " + activeRadioAntenna.selectedStation);
         }
 
         Vector2 stationPos;
@@ -460,6 +491,7 @@ namespace KPRS
         Rect stationRect = new Rect(128f, 70f, 384, HEIGHT - 140 - 35);
         Rect viewRect = new Rect(0, 0, 300, HEIGHT);
         int start = 0;
+        Boolean toggle = false;
         void RadioWin(int id)
         {
             if (activeRadioAntenna == null)
@@ -489,30 +521,55 @@ namespace KPRS
 
                         if (activeRadioAntenna.selectedStation == transmitter.Key)
                         {
-                            if (transmitter.Value.location != null && transmitter.Value.location != "")
+                            if (transmitter.Value.location != null && transmitter.Value.location != "" && transmitter.Value.Active)
                             {
-                                GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldYellow);
+                                if (GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldYellow))
+                                {
+                                    soundPlayer.StopSound();
+                                    if (playActivePlaylist != null)
+                                        playActivePlaylist.Clear("RadioWin");
+                                    playerOn = false;
+                                    ClearSelectedStation(transmitter.Key);
+                                }
                             }
                             else
                             {
-                                GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldBlue);
+                                if (transmitter.Value.Active)
+                                    GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldBlue);
+                                else
+                                    GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldRed);
                             }
                         }
                         else
                         {
-                            if (GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, GUI.skin.label))
+                            if (transmitter.Value.Active)
                             {
+                                if (GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, GUI.skin.label))
+                                {
+
+#if false
                                 if (activeRadioAntenna.selectedStation == transmitter.Key)
                                 {
                                     activeRadioAntenna.selectedStation = "";
                                     soundPlayer.StopSound();
-                                    playActivePlaylist = null;
+                                    if (playActivePlaylist != null)
+                                        playActivePlaylist.Clear("RadioWin");
                                     playerOn = false;
                                 }
                                 else
-                                {
-                                    PlaySelectedStation(transmitter.Key);
+#endif
+                                    {
+                                        if (playActivePlaylist != null)
+                                            playActivePlaylist.Clear("RadioWin");
+                                        soundPlayer.StopSound();
+                                        //if (toggle)
+                                        PlaySelectedStation(transmitter.Key);
+                                        toggle = !toggle;
+                                    }
                                 }
+                            } else
+                            {
+                                GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldRed);
                             }
                         }
                         lineCnt++;
@@ -707,9 +764,9 @@ namespace KPRS
             if (activeRadioAntenna != null)
             {
                 float transHeightAdjustment = 0;
-                if (Statics.transmitterList.ContainsKey(activeRadioAntenna.selectedStation)) 
+                if (Statics.transmitterList.ContainsKey(activeRadioAntenna.selectedStation))
                     transHeightAdjustment = Statics.transmitterList[activeRadioAntenna.selectedStation].towerHeight / BASE_ANTENNA_HEIGHT;
-                
+
                 //Log.Info("transHeightAdjustment: " + transHeightAdjustment + ", BASE_TRANS_POWER: " + BASE_TRANSMITTER_POWER);
                 float maxVol = Mathf.Min(100, radioVolume * transHeightAdjustment);
 
@@ -748,19 +805,16 @@ namespace KPRS
             else
             {
                 staticSoundPlayer.SetVolume(radioVolume);
-                Log.Info("staticVolume set without active station");
+                //Log.Info("staticVolume set without active station");
             }
 #if false
-                if (doRotate)
-                {
-                    Log.Info("Rotating image");
-                    InitDialInfo();
-                    //Matrix4x4 matrixBackup = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(angle, pivot);
-                    GUI.DrawTexture(new Rect(632, 185, 150, 150), dialImg);
-                    //GUI.matrix = matrixBackup;
-                    doRotate = false;
-                } else
+            if (doRotate)
+            {
+                Log.Info("Rotating image");
+                RotateImage();
+                doRotate = false;
+            }
+            else
 #endif
 
             //GUI.Button(new Rect(632, 185, 150, 150), dialImg[imgNum], style: NonSelectableWindowStyle);

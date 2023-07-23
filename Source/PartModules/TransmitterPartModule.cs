@@ -29,7 +29,7 @@ namespace KPRS.PartModules
         public double consumeRate = 2f;
 
         [KSPField(isPersistant = true)]
-        public bool Active = false;
+        public bool Active = true;
 
         internal bool LocationSelected { get { return location != null && location.Length > 0; } }
 
@@ -110,7 +110,7 @@ namespace KPRS.PartModules
                         transmitterPartList.Add(m.part);
                         if (m.location != "")
                         {
-                            Active = false;
+                            //Active = false;
                             activeCnt++;
                         }
                     }
@@ -373,9 +373,12 @@ namespace KPRS.PartModules
         {
             if (location != null)
             {
-                double PowerDemand = part.RequestResource("ElectricCharge", consumeRate * TimeWarp.deltaTime);
-                if (PowerDemand < consumeRate * TimeWarp.deltaTime)
+                var demand = consumeRate * TimeWarp.deltaTime;
+                double PowerDemand = part.RequestResource("ElectricCharge", demand);
+                // Yuck, floating point error here, need to add a tiny bit to demand to bypass
+                if (PowerDemand + 0.000001f< demand )
                 {
+                    Log.Info("FixedUpdate, demand: " + demand  + ", PowerDemand: " + PowerDemand + ", consumeRate: " + consumeRate + ", deltaTime: " + TimeWarp.deltaTime);
                     Active = false;
                 }
             }

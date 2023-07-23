@@ -10,6 +10,8 @@ using KPRS.PartModules;
 using static ConfigNode;
 using UnityEngine.UI;
 using System;
+using static KSP.UI.Screens.RDNode;
+using static EdyCommonTools.Spline;
 
 namespace KPRS
 {
@@ -35,12 +37,12 @@ namespace KPRS
         Texture2D powerImg = null;
         Texture2D shuffleImg = null;
         Texture2D shuffleNowImg = null;
-        Texture2D[] dialImg = new Texture2D[8];
+        Texture2D dialImg; // = new Texture2D();
         Texture2D redBtn = new Texture2D(11, 15);
         Texture2D greenBtn = new Texture2D(11, 15);
         Texture2D preampBtn = new Texture2D(60, 11);
 
-        int volImgNum = 3;
+        int volAngle = 3;
         //float preampPower = 0;
         float imageSizeAdjustment;
 
@@ -144,19 +146,19 @@ namespace KPRS
             }
 
 
-            if (!ToolbarControl.LoadImageFromFile(ref dialImg[0], KSPUtil.ApplicationRootPath + "GameData/KPRS/PluginData/Textures/" + DIAL))
+            if (!ToolbarControl.LoadImageFromFile(ref dialImg, KSPUtil.ApplicationRootPath + "GameData/KPRS/PluginData/Textures/" + DIAL))
             {
                 Log.Error("Unable to load dial image");
             }
-
+#if false
             for (int i = 1; i < 8; i++)
             {
                 if (!ToolbarControl.LoadImageFromFile(ref dialImg[i], KSPUtil.ApplicationRootPath + "GameData/KPRS/PluginData/Textures/" + DIAL + "-" + (45 * i).ToString()))
                 {
                     Log.Error("Unable to load dial image");
                 }
-
             }
+#endif
             var pixels = redBtn.GetPixels32();
             for (int i = 0; i < pixels.Length; ++i)
                 pixels[i] = new Color32(255, 0, 0, 255);
@@ -258,14 +260,14 @@ namespace KPRS
                             {
                                 var Distance = Vector3d.Distance(v.GetVessel().GetWorldPos3D(), vessel.GetWorldPos3D());
 
- #if false
+#if false
                                Log.Info("SlowUpdate, Vessel.name: " + vessel.vesselName + ", Distance: " + Distance);
 #endif
 
                                 if (vessel.loaded)
                                 {
                                     var transmitterPartModuleList = vessel.FindPartModulesImplementing<KPBR_TransmitterPartModule>();
-                                    foreach (var transmitterPartModule in transmitterPartModuleList)
+                                    foreach (KPBR_TransmitterPartModule transmitterPartModule in transmitterPartModuleList)
                                     {
 #if false
                                     if (t != null)
@@ -432,28 +434,30 @@ namespace KPRS
             }
         }
 
-#if false
-        public float angle = 15f;
+#if true
+        //public float angle = 15f;
         bool doRotate = false;
-        void InitDialInfo(ref Texture2D dialImg, Vector2 size, out Vector2 pivot)
+        bool volumeDialInfoInitted = false;
+        Vector2 volumeDialPivot;
+        //Rect volumeDialRect;
+        void InitDialInfo(ref Texture2D dialImg, Rect localPosition, Vector2 size, out Rect newRect)
         {
-            //GUI.DrawTexture(new Rect(632, 185, 150, 150), dialImg);
-
-            size = new Vector2(dialImg.width, dialImg.height);
-            var pos = new Vector2(0, 0);
-            var rect = new Rect(pos.x - size.x * 0.5f, pos.y - size.y * 0.5f, size.x, size.y);
-            pivot = new Vector2(rect.xMin + rect.width * 0.5f, rect.yMin + rect.height * 0.5f);
+            var pos = new Vector2(localPosition.x, localPosition.y);
+            newRect = new Rect(pos.x, pos.y, size.x, size.y);
+            volumeDialPivot = new Vector2(newRect.xMin + newRect.width * 0.5f, newRect.yMin + newRect.height * 0.5f);
+            volumeDialInfoInitted |= true;
         }
 
-        void RotateImage( ref Texture2D dialImg, Vector2 size,float angle)
+        enum ButtonImage { Volume, amp }
+        void RotateImage(ButtonImage btn, ref Texture2D dialImg, Vector2 size, float angle)
         {
             Vector2 pivot;
-
-            InitDialInfo(ref dialImg, size, out pivot);
-            //Matrix4x4 matrixBackup = GUI.matrix;
-            GUIUtility.RotateAroundPivot(angle, pivot);
-            GUI.DrawTexture(new Rect(632, 185, 150, 150), dialImg);
-            //GUI.matrix = matrixBackup;
+            //if (!volumeDialInfoInitted && btn == ButtonImage.Volume)
+            InitDialInfo(ref dialImg, volumeDialRect, size, out Rect newRect);
+            Matrix4x4 matrixBackup = GUI.matrix;
+            GUIUtility.RotateAroundPivot(angle, volumeDialPivot);
+            GUI.DrawTexture(newRect, dialImg);
+            GUI.matrix = matrixBackup;
         }
 #endif
 
@@ -484,7 +488,92 @@ namespace KPRS
             playActivePlaylist.Clear("ClearSelectedStation, activeRadioAntenna.selectedStation: " + activeRadioAntenna.selectedStation);
         }
 
+        bool buttonDownFlag = false;
+        bool volumeButtonDownFlag = false;
+        float lastAngle = 0;
+
+        float curAngle;
+
+        /**
+         * Fetches angle relative to screen centre point
+         * where 3 O'Clock is 0 and 12 O'Clock is 270 degrees
+         * 
+         * @param screenPoint
+         * @return angle in degress from 0-360.
+         */
+        public float GetAngle(Vector2 screenPoint, Vector2 center)
+        {
+            float dx = screenPoint.x - center.x;
+            // Minus to correct for coord re-mapping
+            float dy = -(screenPoint.y - center.y);
+
+            float inRads = Mathf.Atan2(dy, dx);
+
+            // We need to map to coord system when 0 degree is at 3 O'clock, 270 at 12 O'clock
+            if (inRads < 0)
+                inRads = Mathf.Abs(inRads);
+            else
+                inRads = 2 * Mathf.PI - inRads;
+
+            var a = Mathf.Rad2Deg * inRads - 90;
+            a= (a < 0) ? a + 360 : a;
+            return Mathf.Round(a);
+        }
+
+        void Update()
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                buttonDownFlag = true;
+            }
+            else
+            {
+                if (Input.GetMouseButtonUp(0))
+                    buttonDownFlag = volumeButtonDownFlag = false;
+            }
+
+            Vector2 MouseOffset;
+            MouseOffset.x = Mouse.screenPos.x - windowRect.x;
+            MouseOffset.y = Mouse.screenPos.y - windowRect.y;
+            Vector2 center;
+            center.x = volumeDialRect.left + VOL_DIAL_RADIUS;
+            center.y = volumeDialRect.top + VOL_DIAL_RADIUS;
+
+
+            if (buttonDownFlag && volumeDialRect.Contains(MouseOffset))
+            {
+                var Dist = Vector2.Distance(MouseOffset, center);
+                if (Dist <= VOL_DIAL_RADIUS)
+                {
+                    if (!volumeButtonDownFlag)
+                    {
+                        //lastVolumeMouseLoc = MouseOffset;
+                        Log.Info("Angle: " + GetAngle(center, MouseOffset));
+                        lastAngle = GetAngle(center, MouseOffset);
+
+                        volumeButtonDownFlag = true;
+                    }
+                    else
+                    {
+                        curAngle = GetAngle(center, MouseOffset);
+
+                        Log.Info("Angle: " + curAngle);
+                        lastAngle = curAngle;
+                    }
+                }
+                else
+                    volumeButtonDownFlag = false;
+            }
+            else
+                volumeButtonDownFlag = false;
+
+        }
+
+
         Vector2 stationPos;
+
+        const float VOL_DIAL_RADIUS = 75f;
+        Rect volumeDialRect = new Rect(632, 185, 2 * VOL_DIAL_RADIUS, 2 * VOL_DIAL_RADIUS);
 
         Rect notificationRect = new Rect(128f, 35f, 384, 45);
 
@@ -492,6 +581,9 @@ namespace KPRS
         Rect viewRect = new Rect(0, 0, 300, HEIGHT);
         int start = 0;
         Boolean toggle = false;
+
+        int dialAngle = 0;
+
         void RadioWin(int id)
         {
             if (activeRadioAntenna == null)
@@ -567,7 +659,8 @@ namespace KPRS
                                         toggle = !toggle;
                                     }
                                 }
-                            } else
+                            }
+                            else
                             {
                                 GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldRed);
                             }
@@ -751,16 +844,27 @@ namespace KPRS
             }
 
             // Two buttons at the lower-right, just to the left of the dial
-            if (GUI.Button(new Rect(539, 296, 36, 20), "v"))
+            Vector2 m = Mouse.screenPos;
+            m.x = m.x - windowRect.x;
+            m.y = m.y - windowRect.y;
+
+            GUI.Button(new Rect(539, 296, 36, 20), "v");
+            if ((new Rect(539, 296, 36, 20)).Contains(m) && (buttonDownFlag))
             {
-                volImgNum = Mathf.Max(0, volImgNum - 1);
+                lastAngle= volAngle = Mathf.Max(0, volAngle - 1);
             }
-            if (GUI.Button(new Rect(588, 296, 36, 20), "^"))
+            GUI.Button(new Rect(588, 296, 36, 20), "^");
+            if ((new Rect(588, 296, 36, 20)).Contains(m) && (buttonDownFlag))
             {
-                volImgNum = Mathf.Min(7, volImgNum + 1);
+                lastAngle= volAngle = Mathf.Min(300, volAngle + 1);
             }
-            float radioVolume = volImgNum * 14.285f;
-            //Log.Info("radioVolume: " + radioVolume);
+
+            if (volAngle < lastAngle)
+                volAngle++;
+            if (volAngle > lastAngle)
+                volAngle--;
+
+            float radioVolume = volAngle / 3;
             if (activeRadioAntenna != null)
             {
                 float transHeightAdjustment = 0;
@@ -771,8 +875,6 @@ namespace KPRS
                 float maxVol = Mathf.Min(100, radioVolume * transHeightAdjustment);
 
 
-                //Log.Info("activeRadioAntenna: " +  activeRadioAntenna);
-                //Log.Info("Statics.transmitterList[activeRadioAntenna.selectedStation]: " + Statics.transmitterList[activeRadioAntenna.selectedStation]);
                 if (Statics.transmitterList.ContainsKey(activeRadioAntenna.selectedStation))
                 {
                     double Distance = Vector3d.Distance(FlightGlobals.ActiveVessel.GetWorldPos3D(), Statics.transmitterList[activeRadioAntenna.selectedStation].vessel.GetWorldPos3D()); ;
@@ -780,20 +882,16 @@ namespace KPRS
                         transHeightAdjustment * BASE_TRANSMITTER_POWER *
                         Mathf.Max(1f, activeRadioAntenna.preampPower) / Distance);
 
-                    //Log.Info("Vessel: " + Statics.transmitterList[activeRadioAntenna.selectedStation].vessel.vesselName + ", Distance: " + Distance.ToString("F1") +
-                    //    ", SignalStrength: " + signalStrength +
-                    //    ", station power: " + Statics.stationList[activeRadioAntenna.selectedStation].power);
-
                     radioVolume *= Mathf.Min(1f, signalStrength);
 
                     float staticVolume = 1f - Mathf.Min(1, (float)(signalStrength));
 
 
                     soundPlayer.SetVolume(radioVolume);
-                    staticVolume *= volImgNum * 14.285f;
+                    //staticVolume *= volAngle ;
 
                     staticSoundPlayer.SetVolume(staticVolume);
-                    //Log.Info("staticVolume: " + staticVolume  + ", activeRadioAntenna.preampPower: " + activeRadioAntenna.preampPower);
+                    //Log.Info("radioVolume: " + radioVolume + ", staticVolume: " + staticVolume + ", activeRadioAntenna.preampPower: " + activeRadioAntenna.preampPower);
                 }
                 else
                 {
@@ -807,20 +905,12 @@ namespace KPRS
                 staticSoundPlayer.SetVolume(radioVolume);
                 //Log.Info("staticVolume set without active station");
             }
-#if false
-            if (doRotate)
-            {
-                Log.Info("Rotating image");
-                RotateImage();
-                doRotate = false;
-            }
-            else
-#endif
 
-            //GUI.Button(new Rect(632, 185, 150, 150), dialImg[imgNum], style: NonSelectableWindowStyle);
-            GUI.DrawTexture(new Rect(632, 185, 150, 150), dialImg[(5 + volImgNum) % 8]);
-
-            GUI.DragWindow();
+            //Log.Info("Rotating image");
+            RotateImage(ButtonImage.Volume, ref dialImg, new Vector2(150, 150), volAngle);
+            doRotate = false;
+            if (!volumeButtonDownFlag)
+                GUI.DragWindow();
 
         }
     }

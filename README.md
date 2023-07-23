@@ -48,7 +48,7 @@ To turn the radio on or off, click the power button on the left, the led to the 
 The lettered buttons currently are not implemented.  
 
 
-The dial at the right can be turned using the up/down buttons, but currently doesn't do anything
+The dial at the right is the volume dial.  You can adjust the volume either by clicking on the dial, or by using the ^ and v buttons just to the lower left of it
 
 ================================
 Support

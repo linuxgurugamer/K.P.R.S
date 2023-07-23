@@ -2,6 +2,7 @@
 using SpaceTuxUtility;
 using static KPRS.RegisterToolbar;
 using static ConfigNode;
+using System;
 
 namespace KPRS
 {
@@ -14,30 +15,28 @@ namespace KPRS
 
         internal bool Active { get; set; }
 
-        internal void InitTransmitter(string selStat, string loc = null, Vessel vessel = null)
+        internal void InitTransmitter(string selStat, string loc = null, Vessel vessel = null, bool active = true)
         {
             location = loc;
             selectedStation = selStat;
             this.vessel = vessel;
+            this.Active = active;
             GetTowerHeight();
         }
 
         internal Transmitter(string selStat, string loc, Vessel vessel, bool active)
         {
-            InitTransmitter(selStat, loc, vessel);
-            Active = active;
+            Log.Info("Transmitter 1, active: " + active);
+            InitTransmitter(selStat, loc, vessel, active);
+
+            //Active = true;
         }
 
         internal Transmitter(KPBR_TransmitterPartModule t)
         {
-            InitTransmitter( t.selectedStation, t.location,t.part.vessel);
+            Log.Info("Transmitter 2, active: " + t.Active);
+            InitTransmitter( t.selectedStation, t.location,t.part.vessel, t.Active);
 
-            //location = t.location;
-            //selectedStation = t.selectedStation;
-            //this.vessel = t.part.vessel;
-            Active = t.Active;
-
-            //GetTowerHeight();
         }
 
         internal void GetTowerHeight()

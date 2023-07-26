@@ -52,6 +52,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyVersion.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AssemblyVersion.tt</DependentUpon>
+    </Compile>
     <Compile Include="Config.cs" />
     <Compile Include="GameSettings.cs" />
     <Compile Include="K.P.B.R.cs" />
@@ -75,10 +80,19 @@
     <Compile Include="Transmitter.cs" />
     <Compile Include="VesselInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="AssemblyVersion.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
-rem "$(DevEnvDir)\texttransform.exe" "$(ProjectDir)AssemblyVersion.tt"
+"$(DevEnvDir)\texttransform.exe" "$(ProjectDir)AssemblyVersion.tt"
     
 </PreBuildEvent>
   </PropertyGroup>

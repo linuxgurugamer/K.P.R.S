@@ -29,7 +29,7 @@ A radio station will consist of the following:
 	3. Power supply.  Will need to be able to supply the needs of the transmitter box(es) and amplifiers
 	4. Optionally one or more amplifiers (each amplifier also needs 10 ec/sec)
 
-1.	Create a radio station.  There are three antenna parts, which can be stacked on top of each other to make a taller tower, the taller it is, the greater the range.  
+1.	Create a radio station.  There are three antenna parts, which can be stacked on top of each other to make a taller tower, the taller it is, the greater the range.  There is also a composite antenna, which consists of all the antenna tower parts together which will animate to be raised.
 1.5 To increase the power of the transmitter, attach multiple TransmitterBases to the antenna
 2.	Once placed, right-click on the transmitter base to select a channel
 3.  After selecting a channel, you need to activate it, again by right-clicking on the transmitter base
@@ -48,7 +48,7 @@ To turn the radio on or off, click the power button on the left, the led to the 
 The lettered buttons currently are not implemented.  
 
 
-The dial at the right can be turned using the up/down buttons, but currently doesn't do anything
+The dial at the right is the volume dial.  You can adjust the volume either by clicking on the dial, or by using the ^ and v buttons just to the lower left of it
 
 ================================
 Support

@@ -11,6 +11,7 @@ using Smooth.Delegates;
 using System.Runtime.CompilerServices;
 using UnityEngineInternal;
 
+#if false
 namespace KPRS
 {
 
@@ -32,3 +33,4 @@ namespace KPRS
         }
     }
 }
+#endif

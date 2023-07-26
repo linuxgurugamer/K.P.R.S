@@ -39,8 +39,8 @@ namespace KPRS.PartModules
         [KSPField(isPersistant = true)]
         internal string preset5 = "";
 
-        [KSPField(isPersistant = true)]
-        int volume = 4;     //multiplied by 12.5 to get a number between 0 and 100
+        //[KSPField(isPersistant = true)]
+        //int volume = 0.4;     //multiplied by 12.5 to get a number between 0 and 100
 
         [KSPField(isPersistant = true)]
         internal float preampPower = 0f;

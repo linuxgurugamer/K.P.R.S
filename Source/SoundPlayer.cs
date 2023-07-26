@@ -15,7 +15,7 @@ namespace KPRS
     {
         //internal SoundPlayer Instance;
         GameObject soundPlayerObject;
-        AudioSource audioSource;
+        internal AudioSource audioSource;
         AudioClip loadedClip;
         string clipName = "";
         string playerName = "";
@@ -28,7 +28,12 @@ namespace KPRS
             Log.Info("SoundPlayer.Awake");
         }
 
-        internal string Name { get { return playerName; } set {  playerName = value; } }
+        void OnDestroy()
+        {
+            Log.Info("SoundPlayer.OnDestroy, playerName: " + playerName);
+        }
+
+        internal string Name { get { return playerName; } set { playerName = value; } }
 
         public void LoadClipFromFile(string path, bool alternative = false)
         {
@@ -37,12 +42,12 @@ namespace KPRS
 
         IEnumerator LoadClipCoroutine(string path)
         {
-#if false
+#if true
             Log.Info("LoadClipCoroutine, playerName: " + Name + ", path: " + path + ", exists: " + System.IO.File.Exists(path));
 #endif
 
             StopSound();
-            
+
             loadingSong = true;
             string url = string.Format("file://{0}", path);
             clipName = url;
@@ -63,7 +68,7 @@ namespace KPRS
 #endif
             loadingSong = false;
             readyToPlay = true;
-            
+
         }
 
 #if false
@@ -79,7 +84,7 @@ namespace KPRS
 
         public void PlaySound(string caller)
         {
-#if false
+#if true
             Log.Info("SoundPlayer.PlaySound caller: " + caller + ", clipName: " + clipName + ", loadingSong: " + loadingSong);
 #endif
             if (loadingSong)
@@ -89,14 +94,14 @@ namespace KPRS
             readyToPlay = false;
             if (loadedClip == null)
             {
-                Log.Error("PlaySound, playerName: " + Name +", loadedClip is null: " + clipName);
+                Log.Error("PlaySound, playerName: " + Name + ", loadedClip is null: " + clipName);
                 return;
             }
 
             if (audioSource != null)
             {
                 audioSource.clip = loadedClip;
-
+                
                 if (audioSource.clip != null && !audioSource.isPlaying)
                 {
 #if false
@@ -104,21 +109,27 @@ namespace KPRS
 #endif
                     audioSource.Play();
                 }
+                
 #if false
                 Log.Info("audioSource.Volume: " + audioSource.volume);
 #endif
             }
+            else
+                Log.Error("PlaySound, audioSource is null");
         }
 
         public void SetVolume(float vol)
         {
             if (audioSource != null)
             {
-                audioSource.volume = vol / 100f;
+                audioSource.volume = vol;
 #if false
                 Log.Info("SetVolume.audioSource.Volume: " + audioSource.volume);
 #endif
             }
+            else
+                Log.Error("SetVolume, audioSource is null");
+
         }
 
         public void ToggleSound()
@@ -130,37 +141,49 @@ namespace KPRS
 #endif
                 return;
             }
-            if (audioSource != null && audioSource.clip != null)
+            if (audioSource != null)
             {
-                if (SoundPlaying())
+                if (audioSource.clip != null)
                 {
-                    audioSource.Stop();
-                }
-                else
-                {
+                    if (SoundPlaying())
+                    {
+                        audioSource.Stop();
+                    }
+                    else
+                    {
 #if false
                     Log.Info("PlaySound, clip name: " + clipName);
                     Log.Info("ToggleSound, playerName: " + Name +", audioSource.Volume: " + audioSource.volume);
 #endif
-                    audioSource.Play();
+                        audioSource.Play();
 
+                    }
                 }
+                else
+                    Log.Error("ToggleSound, audioSource.clip is null");
             }
+            else
+                Log.Error("ToggleSound, audioSource is null");
+
         }
         public void StopSound()
         {
 #if false
             Log.Info("SoundPlayer, playerName: " + Name);
 #endif
-            if (audioSource != null && audioSource.clip != null)
+            if (audioSource != null)
             {
-                if (SoundPlaying())
+                if (audioSource.clip != null)
                 {
-                    audioSource.Stop();
-                    audioSource.loop = false;
+                    if (SoundPlaying())
+                    {
+                        audioSource.Stop();
+                        audioSource.loop = false;
+                    }
                 }
             }
-
+            else
+                Log.Error("StopSound, audioSource is null");
         }
         public bool SoundPlaying() //Returns true if sound is playing, otherwise false
         {
@@ -184,7 +207,7 @@ namespace KPRS
         public void LoadNewSound(string soundPath, bool alternative = false)
         {
             string fullSoundPath = KSPUtil.ApplicationRootPath + "GameData/" + soundPath;
- #if false
+#if false
             Log.Info("LoadNewSound, playerName: " + Name +", soundPath: " + soundPath);
             Log.Info("LoadNewSound, playerName: " + Name +", fullSoundPath: " + fullSoundPath);
 #endif
@@ -200,7 +223,7 @@ namespace KPRS
         {
             if (soundPlayerObject == null)
             {
- #if false
+#if false
                 Log.Info("SoundPlayer.Start, playerName: " + Name +", soundPath: " + soundPath);
 #endif
 
@@ -214,17 +237,15 @@ namespace KPRS
                     audioSource.volume = 0.5f;
                     audioSource.spatialBlend = 0;
                     audioSource.loop = false;
-
-
                 }
                 else
-                    Log.Error("Initialize, playerName: " + Name +", Unable to add component AudioSource for audioSource");
+                    Log.Error("Initialize, playerName: " + Name + ", Unable to add component AudioSource for audioSource");
 
                 if (soundPath != "")
                 {
                     LoadClipFromFile(soundPath);
                 }
-                Log.Info("Initialized Sound Player, playerName: " + Name );
+                Log.Info("Initialized Sound Player, playerName: " + Name);
             }
         }
     }

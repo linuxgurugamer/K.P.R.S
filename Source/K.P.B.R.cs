@@ -42,7 +42,11 @@ namespace KPRS
         Texture2D greenBtn = new Texture2D(11, 15);
         Texture2D preampBtn = new Texture2D(60, 11);
 
-        int volAngle = 3;
+        const float INITIAL_VOL_ANGLE = 150f;
+
+        float volAngle = INITIAL_VOL_ANGLE;
+        float lastAngle = INITIAL_VOL_ANGLE;
+
         //float preampPower = 0;
         float imageSizeAdjustment;
 
@@ -57,6 +61,7 @@ namespace KPRS
         PlayActivePlaylist playActivePlaylist = null;
 
         bool playerOn = true;
+        bool volumesInitted = false;
 
         internal GameSettings gameSettings;
 
@@ -94,6 +99,7 @@ namespace KPRS
                 soundPlayer.Initialize(); // Initializes the player, does some housekeeping
                 staticSoundPlayer.Initialize();
                 staticSoundPlayer.LoadNewSound(SOUND_DIR + "PluginData/Static/static");
+                staticSoundPlayer.audioSource.loop = true;
                 //staticSoundPlayer.PlaySound();
             }
         }
@@ -107,6 +113,11 @@ namespace KPRS
                 staticSoundPlayer.StopSound();
                 if (playActivePlaylist != null)
                     playActivePlaylist.Clear("onVesselChange");
+                volumesInitted = false;
+                guiActive = false;
+
+                volAngle = lastAngle = HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().initialVolume;
+
             }
         }
 
@@ -201,7 +212,7 @@ namespace KPRS
         RadioPartModule activeRadioAntenna = null;
         bool slowUpdateStarted = false;
         //
-        // This is a method to do housekeeping tasks that can take time and dont need to be done every clock tick
+        // This is a method to do housekeeping tasks that can take time and don't need to be done every clock tick
         //
         IEnumerator SlowUpdate()
         {
@@ -218,7 +229,7 @@ namespace KPRS
             {
                 if (HighLogic.LoadedSceneIsFlight)
                 {
-                    if (playActivePlaylist != null && playerOn)
+                    if (playActivePlaylist != null && playerOn && volumesInitted)
                     {
                         playActivePlaylist.Play("SlowUpdate");
                         staticSoundPlayer.PlaySound("SlowUpdate");
@@ -228,17 +239,13 @@ namespace KPRS
                 //Log.Info("SlowUpdate, cnt: " + cnt);
                 if (cnt++ > 5)
                 {
+                    Statics.vesselInfoList.Clear();
                     cnt = 0;
                     if (HighLogic.LoadedSceneIsFlight)
                     {
                         activeRadioAntenna = FlightGlobals.ActiveVessel.FindPartModuleImplementing<RadioPartModule>();
-                        if (activeRadioAntenna == null)
-                        {
-                            Log.Info("No activeRadioAntenna");
-                        }
-                        else
-                            SetPreampButtonColor(activeRadioAntenna.preampPower
-                                );
+                        if (activeRadioAntenna != null)
+                            SetPreampButtonColor(activeRadioAntenna.preampPower);
 
 #if false
                         Log.Info("SlowUpdate, playerOn: " + playerOn + ", activeRadioAntenna: " + (activeRadioAntenna != null).ToString());
@@ -267,26 +274,34 @@ namespace KPRS
                                 if (vessel.loaded)
                                 {
                                     var transmitterPartModuleList = vessel.FindPartModulesImplementing<KPBR_TransmitterPartModule>();
-                                    foreach (KPBR_TransmitterPartModule transmitterPartModule in transmitterPartModuleList)
+                                    if (transmitterPartModuleList != null && transmitterPartModuleList.Count > 0)
                                     {
-#if false
-                                    if (t != null)
-                                    {
-                                        Log.Info("vesselLoaded: " + vessel.loaded + ": " + vessel.vesselName);
-                                        Log.Info("StationSelected: " + t.StationSelected + ", LocationSelected: " + t.LocationSelected);
-                                    }
-                                    else
-                                        Log.Info("vesselLoaded: " + vessel.loaded + ": " + vessel.vesselName + ", no KPBR_TransmitterPartModule found");
-#endif
-                                        if (transmitterPartModule != null && transmitterPartModule.StationSelected && transmitterPartModule.LocationSelected)
+                                        VesselInfo vesselInfo = new VesselInfo(vessel);
+
+                                        vessel.GetConnectedResourceTotals(RegisterToolbar.resourceID, out double amount, out double maxAmount);
+                                        vesselInfo.StoredEC = amount;
+
+                                        foreach (KPBR_TransmitterPartModule transmitterPartModule in transmitterPartModuleList)
                                         {
+#if false
+                                            if (t != null)
+                                            {
+                                                Log.Info("vesselLoaded: " + vessel.loaded + ": " + vessel.vesselName);
+                                                Log.Info("StationSelected: " + t.StationSelected + ", LocationSelected: " + t.LocationSelected);
+                                            }
+                                            else
+                                                Log.Info("vesselLoaded: " + vessel.loaded + ": " + vessel.vesselName + ", no KPBR_TransmitterPartModule found");
+#endif
+                                            if (transmitterPartModule != null && transmitterPartModule.StationSelected && transmitterPartModule.LocationSelected)
+                                            {
 #if false
                                         Log.Info("Loaded, antenna, selectedStation: " + t.selectedStation + ", location: " + t.location);
 #endif
 
-                                            Statics.transmitterList[transmitterPartModule.selectedStation] = new Transmitter(transmitterPartModule);
-                                            if (Statics.stationList.ContainsKey(transmitterPartModule.selectedStation))
-                                                Statics.stationList[transmitterPartModule.selectedStation].selected = true;
+                                                Statics.transmitterList[transmitterPartModule.selectedStation] = new Transmitter(transmitterPartModule);
+                                                if (Statics.stationList.ContainsKey(transmitterPartModule.selectedStation))
+                                                    Statics.stationList[transmitterPartModule.selectedStation].selected = true;
+                                            }
                                         }
                                     }
                                 }
@@ -358,10 +373,10 @@ namespace KPRS
 #endif
                                 if (playActivePlaylist == null)
                                     playActivePlaylist = new PlayActivePlaylist("SlowUpdate",
-                                        Statics.playlist[Statics.stationList[activeRadioAntenna.selectedStation].playlist]);
+                                        Statics.playlist[Statics.stationList[activeRadioAntenna.selectedStation].playlist], Statics.stationList[activeRadioAntenna.selectedStation].channelCallSign);
                                 else
                                     playActivePlaylist.NewPlayActivePlaylist("SlowUpdate",
-                                    Statics.playlist[Statics.stationList[activeRadioAntenna.selectedStation].playlist]);
+                                    Statics.playlist[Statics.stationList[activeRadioAntenna.selectedStation].playlist], Statics.stationList[activeRadioAntenna.selectedStation].channelCallSign);
                             }
                         }
                     }
@@ -476,10 +491,10 @@ namespace KPRS
             if (playActivePlaylist != null)
             {
                 soundPlayer.StopSound();
-                playActivePlaylist.NewPlayActivePlaylist("PlaySelectedStation", Statics.playlist[s.playlist]);
+                playActivePlaylist.NewPlayActivePlaylist("PlaySelectedStation", Statics.playlist[s.playlist], Statics.stationList[selectedStation].channelCallSign);
             }
             else
-                playActivePlaylist = new PlayActivePlaylist("PlaySelectedStation", Statics.playlist[s.playlist]);
+                playActivePlaylist = new PlayActivePlaylist("PlaySelectedStation", Statics.playlist[s.playlist], Statics.stationList[selectedStation].channelCallSign);
             playerOn = true;
         }
 
@@ -490,13 +505,12 @@ namespace KPRS
 
         bool buttonDownFlag = false;
         bool volumeButtonDownFlag = false;
-        float lastAngle = 0;
 
         float curAngle;
 
         /**
          * Fetches angle relative to screen centre point
-         * where 3 O'Clock is 0 and 12 O'Clock is 270 degrees
+         * where 12 O'Clock is 0 and 3 O'Clock is 90 degrees
          * 
          * @param screenPoint
          * @return angle in degress from 0-360.
@@ -516,7 +530,7 @@ namespace KPRS
                 inRads = 2 * Mathf.PI - inRads;
 
             var a = Mathf.Rad2Deg * inRads - 90;
-            a= (a < 0) ? a + 360 : a;
+            a = (a < 0) ? a + 360 : a;
             return Mathf.Round(a);
         }
 
@@ -548,7 +562,6 @@ namespace KPRS
                     if (!volumeButtonDownFlag)
                     {
                         //lastVolumeMouseLoc = MouseOffset;
-                        Log.Info("Angle: " + GetAngle(center, MouseOffset));
                         lastAngle = GetAngle(center, MouseOffset);
 
                         volumeButtonDownFlag = true;
@@ -557,7 +570,6 @@ namespace KPRS
                     {
                         curAngle = GetAngle(center, MouseOffset);
 
-                        Log.Info("Angle: " + curAngle);
                         lastAngle = curAngle;
                     }
                 }
@@ -851,20 +863,23 @@ namespace KPRS
             GUI.Button(new Rect(539, 296, 36, 20), "v");
             if ((new Rect(539, 296, 36, 20)).Contains(m) && (buttonDownFlag))
             {
-                lastAngle= volAngle = Mathf.Max(0, volAngle - 1);
+                lastAngle = volAngle = Mathf.Max(0, volAngle - 1);
             }
             GUI.Button(new Rect(588, 296, 36, 20), "^");
             if ((new Rect(588, 296, 36, 20)).Contains(m) && (buttonDownFlag))
             {
-                lastAngle= volAngle = Mathf.Min(300, volAngle + 1);
+                lastAngle = volAngle = Mathf.Min(300, volAngle + 1);
             }
 
             if (volAngle < lastAngle)
-                volAngle++;
+                volAngle = Mathf.Min(300, 1 + volAngle);
             if (volAngle > lastAngle)
                 volAngle--;
 
-            float radioVolume = volAngle / 3;
+            float radioVolume = 0.0033333333333333f * volAngle;    // 0-1
+
+
+
             if (activeRadioAntenna != null)
             {
                 float transHeightAdjustment = 0;
@@ -872,26 +887,30 @@ namespace KPRS
                     transHeightAdjustment = Statics.transmitterList[activeRadioAntenna.selectedStation].towerHeight / BASE_ANTENNA_HEIGHT;
 
                 //Log.Info("transHeightAdjustment: " + transHeightAdjustment + ", BASE_TRANS_POWER: " + BASE_TRANSMITTER_POWER);
-                float maxVol = Mathf.Min(100, radioVolume * transHeightAdjustment);
+                //float maxVol = Mathf.Min(1, radioVolume * transHeightAdjustment);
 
 
                 if (Statics.transmitterList.ContainsKey(activeRadioAntenna.selectedStation))
                 {
                     double Distance = Vector3d.Distance(FlightGlobals.ActiveVessel.GetWorldPos3D(), Statics.transmitterList[activeRadioAntenna.selectedStation].vessel.GetWorldPos3D()); ;
+                    float preampFinal = activeRadioAntenna.preampPower;
                     float signalStrength = (float)(Statics.stationList[activeRadioAntenna.selectedStation].power *
                         transHeightAdjustment * BASE_TRANSMITTER_POWER *
-                        Mathf.Max(1f, activeRadioAntenna.preampPower) / Distance);
+                        Mathf.Max(1f, preampFinal) / Distance);
 
-                    radioVolume *= Mathf.Min(1f, signalStrength);
+                    signalStrength = Mathf.Max(signalStrength, HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().minSignalStrength);
+                    var finalRadioVolume = radioVolume * Mathf.Min(1f, signalStrength);
 
-                    float staticVolume = 1f - Mathf.Min(1, (float)(signalStrength));
+                    float staticVolume = radioVolume - finalRadioVolume;
 
-
-                    soundPlayer.SetVolume(radioVolume);
-                    //staticVolume *= volAngle ;
-
+                    soundPlayer.SetVolume(finalRadioVolume);
                     staticSoundPlayer.SetVolume(staticVolume);
-                    //Log.Info("radioVolume: " + radioVolume + ", staticVolume: " + staticVolume + ", activeRadioAntenna.preampPower: " + activeRadioAntenna.preampPower);
+#if false
+                    Log.Info("finalRadioVolume: " + finalRadioVolume + ", radioVolume: " + radioVolume + ", staticVolume: " + staticVolume +
+                        ", signalStrength: " + signalStrength +
+                        ", preampFinal: " + preampFinal);
+#endif
+                    volumesInitted = true;
                 }
                 else
                 {

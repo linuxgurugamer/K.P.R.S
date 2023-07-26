@@ -390,19 +390,21 @@ namespace KPRS.PartModules
         private const String MAIN_POWER_NAME = "ElectricCharge";
 
         //This method is called by the BackgroundProcessing DLL, if the user has installed it. Otherwise it will never be called.
-        //It will consume ElectricCharge for Freezer that contain frozen kerbals for vessels that are unloaded, if the user has turned on the ECreqdForFreezer option in the settings menu.
+        //It will consume ElectricCharge for vessels with active transmitter parts for vessels that are unloaded
         public static void FixedBackgroundUpdate(Vessel v, uint partFlightID, Func<Vessel, float, string, float> resourceRequest, ref Object data)
         {
             if (Time.timeSinceLevelLoad < 2.0f || CheatOptions.InfiniteElectricity) // Check not loading level
             {
                 return;
             }
-
+#if false
             if (DFIntMemory.Instance && DFIntMemory.Instance.BGRinstalled) //If Background Resources mod is installed. Don't do BackgroundProcessing Mod work.
             {
                 return;
             }
+#endif
             bool debug = true;
+#if false
             try
             {
                 debug = DeepFreeze.Instance.DFsettings.debugging;
@@ -411,13 +413,16 @@ namespace KPRS.PartModules
             {
                 Utilities.Log("DeepFreeze FixedBackgroundUpdate failed to get debug setting");
             }
+#endif
             if (debug) Debug.Log("FixedBackgroundUpdate vesselID " + v.id + " partID " + partFlightID);
+#if false
             // If the user does not have ECreqdForFreezer option ON, then we do nothing and return
             if (!DeepFreeze.Instance.DFsettings.ECreqdForFreezer)
             {
                 //if (debug) Debug.Log("FixedBackgroundUpdate ECreqdForFreezer is OFF, nothing to do");
                 return;
             }
+#endif
             // If the vessel this module is attached to is NOT stored in the DeepFreeze dictionary of known deepfreeze vessels we can't do anything, But this should NEVER happen.
             VesselInfo vslinfo;
             if (!DeepFreeze.Instance.DFgameSettings.knownVessels.TryGetValue(v.id, out vslinfo))
@@ -515,9 +520,9 @@ namespace KPRS.PartModules
             }
         }
 
-        #endregion BackgroundProcessing
+#endregion BackgroundProcessing
 #endif
 
-    }
+        }
 
 }

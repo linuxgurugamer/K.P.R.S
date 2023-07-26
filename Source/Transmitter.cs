@@ -26,7 +26,7 @@ namespace KPRS
 
         internal Transmitter(string selStat, string loc, Vessel vessel, bool active)
         {
-            Log.Info("Transmitter 1, active: " + active);
+            //Log.Info("Transmitter 1, active: " + active);
             InitTransmitter(selStat, loc, vessel, active);
 
             //Active = true;

@@ -71,7 +71,9 @@
     <Compile Include="SoundPlayer.cs" />
     <Compile Include="Statics.cs" />
     <Compile Include="Station.cs" />
+    <Compile Include="StockSettings.cs" />
     <Compile Include="Transmitter.cs" />
+    <Compile Include="VesselInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

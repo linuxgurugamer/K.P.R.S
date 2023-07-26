@@ -10,6 +10,7 @@ namespace KPRS
     public class RegisterToolbar : MonoBehaviour
     {
         internal static Log Log = null;
+        internal static int resourceID = -1;
 
 
         internal void InitLog()
@@ -49,6 +50,12 @@ namespace KPRS
             InitLog();
             LoadConfigs.GetConfigs();
 
+            PartResourceDefinition electricCharge = PartResourceLibrary.Instance.GetDefinition("ElectricCharge");
+
+            if (electricCharge != null)
+                resourceID = electricCharge.id;
+            else
+                Log.Error("ElectricCharge not found");
         }
 
 #if true

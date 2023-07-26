@@ -9,51 +9,6 @@ using static KPRS.RegisterToolbar;
 namespace KPRS
 {
 
-    public  class VesselInfo
-    {
-        public const string ConfigNodeName = "VesselInfo";
-
-        public string vesselName;
-        public double storedEC;
-        public double predictedECOut;
-        public double lastUpdate;
-
-        internal VesselInfo(string vesselName, double currentTime)
-        {
-            this.vesselName = vesselName;
-            lastUpdate = currentTime;
-        }
-
-        internal static VesselInfo Load(ConfigNode node)
-        {
-            string vesselName = "Unknown";
-            node.TryGetValue("vesselName", ref vesselName);
-            double lastUpdate = 0f;
-            node.TryGetValue("lastUpdate", ref lastUpdate);
-
-            VesselInfo info = new VesselInfo(vesselName, lastUpdate);
-            node.TryGetValue("storedEC", ref info.storedEC);
-            node.TryGetValue("predictedECOut", ref info.predictedECOut);
-
-            return info;
-        }
-
-        internal ConfigNode Save(ConfigNode config)
-        {
-            ConfigNode node = config.AddNode(ConfigNodeName);
-            node.AddValue("vesselName", vesselName);
-            node.AddValue("storedEC", storedEC);
-            node.AddValue("predictedECOut", predictedECOut);
-            return node;
-        }
-
-        internal void ClearAmounts()
-        {
-            storedEC = 0f;
-            predictedECOut = 0f;
-        }
-
-    }
 
     public class PartInfo
     {
@@ -121,9 +76,9 @@ namespace KPRS
     }
     internal class GameSettings
     {
-        // This class stores the DeepFreeze Gamesettings config node.
+        // This class stores the KPRS Gamesettings config node.
         // which includes the following Dictionaries
-        // knownVessels - all vessels in the save game that contain a DeepFreezer partmodule
+        // knownVessels - all vessels in the save game that contain a Transmitter partmodule
         // knownTransmitterParts - all parts in the save game that contain a Transmitter partmodule
 
         public const string configNodeName = "KPBRGameSettings";
@@ -160,7 +115,7 @@ namespace KPRS
                         knownVessels[id] = vesselInfo;
                     }
                 }
-                Log.Info("DFGameSettings finished loading KnownVessels");
+                Log.Info("KPRSGameSettings finished loading KnownVessels");
                 knownTransmitterParts.Clear();
                 var partNodes = settingsNode.GetNodes(PartInfo.ConfigNodeName);
                 foreach (ConfigNode partNode in partNodes)
@@ -168,14 +123,14 @@ namespace KPRS
                     if (partNode.HasValue("flightID"))
                     {
                         uint id = uint.Parse(partNode.GetValue("flightID"));
-                        Log.Info("DFGameSettings Loading flightID = " + id);
+                        Log.Info("KPRSGameSettings Loading flightID = " + id);
                         PartInfo partInfo = PartInfo.Load(partNode);
                         knownTransmitterParts[id] = partInfo;
                     }
                 }
-                Log.Info("DFGameSettings finished loading KnownParts");
+                Log.Info("KPRSGameSettings finished loading KnownParts");
             }
-            Log.Info("DFGameSettings Loading Complete");
+            Log.Info("KPRSGameSettings Loading Complete");
         }
 
         internal void Save(ConfigNode node)
@@ -196,14 +151,14 @@ namespace KPRS
             foreach (var entry in knownVessels)
             {
                 ConfigNode vesselNode = entry.Value.Save(settingsNode);
-                Log.Info("DFGameSettings Saving Guid = " + entry.Key);
+                Log.Info("KPRSGameSettings Saving Guid = " + entry.Key);
                 vesselNode.AddValue("Guid", entry.Key);
             }
 
             foreach (var entry in knownTransmitterParts)
             {
                 ConfigNode partNode = entry.Value.Save(settingsNode);
-                Log.Info("DFGameSettings Saving part flightID = " + entry.Key);
+                Log.Info("KPRSGameSettings Saving part flightID = " + entry.Key);
                 partNode.AddValue("flightID", entry.Key);
             }
 

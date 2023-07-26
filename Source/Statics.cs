@@ -17,5 +17,7 @@ namespace KPRS
         internal static Dictionary<string, Station> stationList = new Dictionary<string, Station>();
         internal static Dictionary<string, PlayList> playlist = new Dictionary<string, PlayList>();
         internal static Dictionary<string, Transmitter> transmitterList = new Dictionary<string, Transmitter>();
+
+        internal static Dictionary<string, VesselInfo> vesselInfoList = new Dictionary<string, VesselInfo>();
     }
 }

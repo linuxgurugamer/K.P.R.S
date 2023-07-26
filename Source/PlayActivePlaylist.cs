@@ -8,6 +8,9 @@ namespace KPRS
     {
         List<string> activePlaylistTracks = new List<string>();
         List<string> playlistTracks;
+        string callsignTrack;
+        bool callsignPlayed = false;
+
         PlayList playlist;
         internal bool Shuffle { get; set; }
 
@@ -20,12 +23,12 @@ namespace KPRS
             Play("ToggleShuffle");
         }
 
-        internal PlayActivePlaylist(string caller, PlayList playlist)
+        internal PlayActivePlaylist(string caller, PlayList playlist, string channelCallsign)
         {
 #if false
             Log.Info("PlayActivePlayList, caller: " + caller);
 #endif
-            NewPlayActivePlaylist("PlayActivePlaylist", playlist);
+            NewPlayActivePlaylist("PlayActivePlaylist", playlist, channelCallsign);
 
 #if false
             this.activePlaylistTracks = new List<string>(playlist.tracks);
@@ -44,7 +47,7 @@ namespace KPRS
             this.playlistTracks = null;
         }
 
-        internal void NewPlayActivePlaylist(string caller, PlayList playlist)
+        internal void NewPlayActivePlaylist(string caller, PlayList playlist, string channelCallsign)
         {
 #if false
             Log.Info("NewPlayActivePlaylist, caller: " + caller + ", playlist name: " + playlist.name);
@@ -53,6 +56,9 @@ namespace KPRS
 
             this.activePlaylistTracks = new List<string>(playlist.tracks);
             this.playlistTracks = playlist.tracks;
+            this.callsignTrack = channelCallsign;
+            callsignPlayed = false;
+
 #if false
             foreach (var a in playlist.tracks)
                 Log.Info("Playlist: " + a.ToString());
@@ -93,32 +99,42 @@ namespace KPRS
                 }
                 else
                 {
-                    if (activePlaylistTracks.Count > 0)
+                    if (!callsignPlayed)
                     {
+                        KPBR.soundPlayer.PlaySound("PlayActivePlaylist.Play, removing item from index 0");
+                        KPBR.soundPlayer.LoadNewSound(callsignTrack);
+                        callsignPlayed=true;
+
+                    }
+                    else
+                    {
+                        if (activePlaylistTracks.Count > 0)
+                        {
 #if false
                     if (KPBR.soundPlayer.SoundPlaying())
                     {
                         KPBR.soundPlayer.StopSound();
                     }
 #endif
-                        KPBR.soundPlayer.PlaySound("PlayActivePlaylist.Play, removing item from index 0");
-                        KPBR.soundPlayer.LoadNewSound(activePlaylistTracks[0]);
-                        activePlaylistTracks.RemoveAt(0);
-                    }
-                    else
-                    {
-                        if (Shuffle)
-                        {
-                            ShufflePlaylist();
+                            KPBR.soundPlayer.PlaySound("PlayActivePlaylist.Play, removing item from index 0");
+                            KPBR.soundPlayer.LoadNewSound(activePlaylistTracks[0]);
+                            activePlaylistTracks.RemoveAt(0);
                         }
                         else
                         {
-                            KPBR.soundPlayer.StopSound();
-                            if (playlistTracks != null)
-                                this.activePlaylistTracks = new List<string>(playlistTracks);
+                            if (Shuffle)
+                            {
+                                ShufflePlaylist();
+                            }
                             else
                             {
-                                this.activePlaylistTracks = new List<string>();
+                                KPBR.soundPlayer.StopSound();
+                                if (playlistTracks != null)
+                                    this.activePlaylistTracks = new List<string>(playlistTracks);
+                                else
+                                {
+                                    this.activePlaylistTracks = new List<string>();
+                                }
                             }
                         }
                     }

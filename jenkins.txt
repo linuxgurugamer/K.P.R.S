@@ -31,7 +31,7 @@
 1:KPRS, KPRS.version
 
 # 2:PROJNAME, PROJFILE, VERSIONFILE, PLUGINSFOLDER
-2:K.P.R.S,K.P.R.S/K.P.R.S.csproj,KPRS.version,GameData/KPRS/Plugins
+2:K.P.R.S,Source/K.P.R.S.csproj,KPRS.version,GameData/KPRS/Plugins
 
 # 3:SOURCEFILE, DESTDIR
 3:KPRS.version,GameData/KPRS

@@ -36,8 +36,12 @@ namespace KPRS
         public float initialVolume = 0.5f;
 
         [GameParameters.CustomFloatParameterUI("Minimum Signal Strength", minValue = 0f, maxValue = .5f, stepCount = 101, displayFormat = "F2", asPercentage = false,
-            toolTip ="The minimum strength of a signal being received.  This is an artifical minimum to allow you to receive any signal, anywhere, regardless of distance")]
+            toolTip = "The minimum strength of a signal being received.  This is an artifical minimum to allow you to receive any signal, anywhere, regardless of distance")]
         public float minSignalStrength = 0.01f;
+
+        [GameParameters.CustomFloatParameterUI("UI Scale", minValue = 50f, maxValue = 150f, stepCount = 101, displayFormat = "F0", asPercentage = false,
+            toolTip = "Size of the radio box")]
+        public float uiScale = 100.0f;
 
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)

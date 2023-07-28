@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UIElements;
 using static KPRS.RegisterToolbar;
 
@@ -49,6 +50,17 @@ namespace KPRS
             StopSound();
 
             loadingSong = true;
+            UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip("file:///" + path, AudioType.OGGVORBIS);
+           // yield return req.SendWebRequest();
+            yield return req.SendWebRequest();
+
+            loadedClip = DownloadHandlerAudioClip.GetContent(req);
+            clipName = path;
+            if (loadedClip == null)
+                Log.Error("LoadClipCoroutine, playerName: " + Name + " LoadedClip is null, path: " + path);
+
+#if false
+            loadingSong = true;
             string url = string.Format("file://{0}", path);
             clipName = url;
 #pragma warning disable 0618
@@ -65,6 +77,7 @@ namespace KPRS
             
             Log.Info("LoadClipCoroutine, playerName: " + Name +", Clip loaded from file: " + path);
             Log.Info("LoadClipCoroutine 2, loadingSong: " + loadingSong + ", clip len: " + loadedClip.length);
+#endif
 #endif
             loadingSong = false;
             readyToPlay = true;

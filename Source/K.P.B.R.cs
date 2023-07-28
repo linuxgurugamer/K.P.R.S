@@ -19,15 +19,20 @@ namespace KPRS
     public class KPBR : MonoBehaviour
     {
 
+        float UIScale = 1f;
         internal static KPBR Instance { get; set; }
         internal const string MODID = "K.P.R.S.";
         internal const string MODNAME = "Kerbal Public Radio Service";
 
-        const float HEIGHT = 353f;
-        const float WIDTH = 800f;
+
+        const float BASE_HEIGHT = 353f;
+        const float BASE_WIDTH = 800f;
+
+        float HEIGHT = BASE_HEIGHT;
+        float WIDTH = BASE_WIDTH;
 
         [KSPField(isPersistant = true)]
-        private Rect windowRect = new Rect(50f, 50, WIDTH, HEIGHT);
+        private Rect windowRect = new Rect(50f, 50, BASE_WIDTH, BASE_HEIGHT);
 
         [KSPField(isPersistant = true)]
         internal Rect transWindowRect = new Rect(50f, 25f, KPBR_TransmitterPartModule.TRANS_SEL_WIDTH, KPBR_TransmitterPartModule.TRANS_SEL_HEIGHT);
@@ -104,6 +109,87 @@ namespace KPRS
             }
         }
 
+        Rect powerLEDRect = new Rect(31, 154, 11, 15);
+        Rect powerBtnRect = new Rect(53, 151, 43, 22);
+        Rect preAmpDownRect = new Rect(28, 174, 28, 22);
+        Rect preAmpUpRect = new Rect(68, 174, 28, 22);
+        Rect preampBtnRect = new Rect(32, 158, 60, 11);
+
+        Rect preset1BtnRect = new Rect(161, 320, 46, 22);
+        Rect preset2BtnRect = new Rect(229, 320, 46, 22);
+        Rect preset3BtnRect = new Rect(297, 320, 46, 22);
+        Rect preset4BtnRect = new Rect(365, 320, 46, 22);
+        Rect preset5BtnRect = new Rect(433, 320, 46, 22);
+
+        Rect shuffleImgRect = new Rect(555, 151, 40, 19);
+        Rect shuffleNowImgRect = new Rect(555, 185, 40, 19);
+
+        Rect kRect = new Rect(555, 219, 40, 19);
+        Rect lRect = new Rect(555, 253, 40, 19);
+
+        Rect volDownRect = new Rect(539, 316, 36, 20);
+        Rect volUpRect = new Rect(588, 316, 36, 20);
+
+        Vector2 volImgSizeSize = new Vector2(150, 150);
+
+        const float VOL_DIAL_RADIUS = 75f;
+
+        Rect volumeDialRect = new Rect(632, 205, 2 * VOL_DIAL_RADIUS, 2 * VOL_DIAL_RADIUS);
+
+        Rect guiScaleRect = new Rect(100, 10, 616, 10f);
+        Rect ScaledRect(float x, float y, float width, float height)
+        {
+            return new Rect(x * UIScale, y * UIScale, width * UIScale, height * UIScale);
+        }
+        void OnGameSettingsApplied()
+        {
+            UIScale = HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().uiScale / 100f;
+
+            HEIGHT = BASE_HEIGHT * UIScale;
+            WIDTH = BASE_WIDTH * UIScale;
+
+            windowRect = new Rect(windowRect.x, windowRect.y, WIDTH, HEIGHT);
+            viewRect = new Rect(0, 20, 300 * UIScale, HEIGHT);
+
+            // Use ScaledRect when ALL the values are scaled
+
+            stationRect = ScaledRect(128f, 90f, 384, BASE_HEIGHT - 175);
+
+            notificationRect = ScaledRect(128f, 55f, 384, 45f);
+            viewRect = ScaledRect(0, 20, 300, BASE_HEIGHT);
+            powerLEDRect = ScaledRect(31, 154, 11, 15);
+            powerBtnRect = ScaledRect(53, 151, 43, 22);
+            preAmpDownRect = ScaledRect(28, 194, 28, 22);
+            preAmpUpRect = ScaledRect(68, 194, 28, 22);
+            preampBtnRect = ScaledRect(32, 178, 60, 11);
+
+            preset1BtnRect = ScaledRect(161, 320, 46, 22);
+            preset2BtnRect = ScaledRect(229, 320, 46, 22);
+            preset3BtnRect = ScaledRect(297, 320, 46, 22);
+            preset4BtnRect = ScaledRect(365, 320, 46, 22);
+            preset5BtnRect = ScaledRect(433, 320, 46, 22);
+
+            shuffleImgRect = ScaledRect(555, 151, 40, 19);
+            shuffleNowImgRect = ScaledRect(555, 185, 40, 19);
+
+            kRect = ScaledRect(555, 219, 40, 19);
+            lRect = ScaledRect(555, 253, 40, 19);
+
+            volDownRect = ScaledRect(539, 316, 36, 20);
+            volUpRect = ScaledRect(588, 316, 36, 20);
+
+            volumeDialRect = ScaledRect(632, 205, 2 * VOL_DIAL_RADIUS, 2 * VOL_DIAL_RADIUS);
+            guiScaleRect = ScaledRect(100, 10, 616, 10f);
+
+            volImgSizeSize = new Vector2(150 * UIScale, 150 * UIScale);
+
+
+            radioLabelFontBoldYellow.fontSize =
+                radioLabelFontBoldBlue.fontSize =
+                labelFontBoldRed.fontSize = (int)(16f * UIScale);
+            labelFontBoldLarge.fontSize = (int)(22f * UIScale);
+        }
+
         void onVesselChange(Vessel v)
         {
             Log.Info("onVesselChange");
@@ -132,6 +218,7 @@ namespace KPRS
             GameEvents.onLevelWasLoadedGUIReady.Add(onLevelWasLoadedGUIReady);
             GameEvents.onGameSceneLoadRequested.Add(onGameSceneLoadRequested);
             GameEvents.onVesselChange.Add(onVesselChange);
+            GameEvents.OnGameSettingsApplied.Add(OnGameSettingsApplied);
 
             if (ToolbarControl.LoadImageFromFile(ref facePlateImg, KSPUtil.ApplicationRootPath + "GameData/KPRS/PluginData/Textures/" + FACEPLATE))
             {
@@ -161,15 +248,7 @@ namespace KPRS
             {
                 Log.Error("Unable to load dial image");
             }
-#if false
-            for (int i = 1; i < 8; i++)
-            {
-                if (!ToolbarControl.LoadImageFromFile(ref dialImg[i], KSPUtil.ApplicationRootPath + "GameData/KPRS/PluginData/Textures/" + DIAL + "-" + (45 * i).ToString()))
-                {
-                    Log.Error("Unable to load dial image");
-                }
-            }
-#endif
+
             var pixels = redBtn.GetPixels32();
             for (int i = 0; i < pixels.Length; ++i)
                 pixels[i] = new Color32(255, 0, 0, 255);
@@ -185,6 +264,7 @@ namespace KPRS
             SetPreampButtonColor(0);
 
             StartCoroutine(SlowUpdate());
+            OnGameSettingsApplied();
         }
 
 
@@ -416,7 +496,9 @@ namespace KPRS
             {
                 if (_NonSelectableWindowStyle == null)
                 {
+#if false
                     GUIStyle s = new GUIStyle(GUI.skin.window);
+
                     s.onNormal.background = null;
                     s.border = new RectOffset(0, 0, 0, 0);
                     s.margin = new RectOffset(0, 0, 0, 0);
@@ -427,6 +509,8 @@ namespace KPRS
                     s.stretchWidth = true;
 
                     _NonSelectableWindowStyle = s;
+#endif
+                    _NonSelectableWindowStyle = new GUIStyle();
                 }
                 return _NonSelectableWindowStyle;
             }
@@ -461,12 +545,13 @@ namespace KPRS
             newRect = new Rect(pos.x, pos.y, size.x, size.y);
             volumeDialPivot = new Vector2(newRect.xMin + newRect.width * 0.5f, newRect.yMin + newRect.height * 0.5f);
             volumeDialInfoInitted |= true;
+
         }
 
         enum ButtonImage { Volume, amp }
         void RotateImage(ButtonImage btn, ref Texture2D dialImg, Vector2 size, float angle)
         {
-            Vector2 pivot;
+            //Vector2 pivot;
             //if (!volumeDialInfoInitted && btn == ButtonImage.Volume)
             InitDialInfo(ref dialImg, volumeDialRect, size, out Rect newRect);
             Matrix4x4 matrixBackup = GUI.matrix;
@@ -550,14 +635,14 @@ namespace KPRS
             MouseOffset.x = Mouse.screenPos.x - windowRect.x;
             MouseOffset.y = Mouse.screenPos.y - windowRect.y;
             Vector2 center;
-            center.x = volumeDialRect.left + VOL_DIAL_RADIUS;
-            center.y = volumeDialRect.top + VOL_DIAL_RADIUS;
+            center.x = volumeDialRect.left + VOL_DIAL_RADIUS * UIScale;
+            center.y = volumeDialRect.top + VOL_DIAL_RADIUS * UIScale;
 
 
             if (buttonDownFlag && volumeDialRect.Contains(MouseOffset))
             {
                 var Dist = Vector2.Distance(MouseOffset, center);
-                if (Dist <= VOL_DIAL_RADIUS)
+                if (Dist <= VOL_DIAL_RADIUS * UIScale)
                 {
                     if (!volumeButtonDownFlag)
                     {
@@ -584,13 +669,11 @@ namespace KPRS
 
         Vector2 stationPos;
 
-        const float VOL_DIAL_RADIUS = 75f;
-        Rect volumeDialRect = new Rect(632, 185, 2 * VOL_DIAL_RADIUS, 2 * VOL_DIAL_RADIUS);
 
         Rect notificationRect = new Rect(128f, 35f, 384, 45);
 
-        Rect stationRect = new Rect(128f, 70f, 384, HEIGHT - 140 - 35);
-        Rect viewRect = new Rect(0, 0, 300, HEIGHT);
+        Rect stationRect = new Rect(128f, 70f, 384, BASE_HEIGHT - 175);
+        Rect viewRect = new Rect(0, 0, 300, BASE_HEIGHT);
         int start = 0;
         Boolean toggle = false;
 
@@ -598,15 +681,25 @@ namespace KPRS
 
         void RadioWin(int id)
         {
+            var oldUiScale = HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().uiScale;
+            HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().uiScale = GUI.HorizontalSlider(guiScaleRect, HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().uiScale, 50, 150f);
+            if (HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().uiScale != oldUiScale)
+                GameEvents.OnGameSettingsApplied.Fire();
+            //OnGameSettingsApplied();
+
             if (activeRadioAntenna == null)
             {
-                GUI.Label(notificationRect, "No active radio antenna found", labelFontBoldYellow);
+                GUI.Label(notificationRect, "No active radio antenna found", radioLabelFontBoldYellow);
             }
             else
             {
                 if (activeRadioAntenna.selectedStation != "")
                 {
                     GUI.Label(notificationRect, "Currently Playing: " + activeRadioAntenna.selectedStation, labelFontBoldLarge);
+                }
+                else
+                {
+                    GUI.Label(notificationRect, "No station selected", radioLabelFontBoldYellow);
                 }
 
                 stationPos = GUI.BeginScrollView(stationRect, stationPos, viewRect, false, true, GUIStyle.none, RegisterToolbar.vertScrollbarStyle);
@@ -627,7 +720,7 @@ namespace KPRS
                         {
                             if (transmitter.Value.location != null && transmitter.Value.location != "" && transmitter.Value.Active)
                             {
-                                if (GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldYellow))
+                                if (GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, radioLabelFontBoldYellow))
                                 {
                                     soundPlayer.StopSound();
                                     if (playActivePlaylist != null)
@@ -639,7 +732,7 @@ namespace KPRS
                             else
                             {
                                 if (transmitter.Value.Active)
-                                    GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldBlue);
+                                    GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, radioLabelFontBoldBlue);
                                 else
                                     GUI.Button(new Rect(30, 25 * (lineCnt - start), WIDTH - 70, 20), channelDescr, labelFontBoldRed);
                             }
@@ -685,9 +778,9 @@ namespace KPRS
 
             // leds
             if (playerOn)
-                GUI.DrawTexture(new Rect(31, 134, 11, 15), greenBtn);
+                GUI.DrawTexture(powerLEDRect, greenBtn);
             else
-                GUI.DrawTexture(new Rect(31, 134, 11, 15), redBtn);
+                GUI.DrawTexture(powerLEDRect, redBtn);
 
 
             // Now the buttons, starting at the left
@@ -696,13 +789,13 @@ namespace KPRS
 
 
             //alignment = TextAnchor.MiddleCenter;
-            if (GUI.Button(new Rect(53, 131, 43, 22), powerImg, btnCenter)) // style: NonSelectableWindowStyle))
+            if (GUI.Button(powerBtnRect, powerImg, btnCenter)) // style: NonSelectableWindowStyle))
             {
                 playerOn = !playerOn;
                 soundPlayer.ToggleSound();
                 staticSoundPlayer.ToggleSound();
             }
-            if (GUI.Button(new Rect(28, 174, 28, 22), "↓"))
+            if (GUI.Button(preAmpDownRect, "↓"))
             {
                 if (activeRadioAntenna != null && Input.GetMouseButtonUp(0))
                 {
@@ -711,7 +804,7 @@ namespace KPRS
 
                 }
             }
-            if (GUI.Button(new Rect(68, 174, 28, 22), "↑"))
+            if (GUI.Button(preAmpUpRect, "↑"))
             {
                 if (activeRadioAntenna != null && Input.GetMouseButtonUp(0))
                 {
@@ -720,10 +813,10 @@ namespace KPRS
 
                 }
             }
-            GUI.DrawTexture(new Rect(32, 158, 60, 11), preampBtn);
+            GUI.DrawTexture(preampBtnRect, preampBtn);
 
             // Now the row of buttons at the bottom, left to right
-            if (GUI.Button(new Rect(161, 300, 46, 22), activeRadioAntenna != null && activeRadioAntenna.preset1 != "" ? Statics.stationList[activeRadioAntenna.preset1].abbr.ToString() : ""))
+            if (GUI.Button(preset1BtnRect, activeRadioAntenna != null && activeRadioAntenna.preset1 != "" ? Statics.stationList[activeRadioAntenna.preset1].abbr.ToString() : ""))
             {
                 if (activeRadioAntenna != null)
                 {
@@ -743,7 +836,7 @@ namespace KPRS
                     }
                 }
             }
-            if (GUI.Button(new Rect(229, 300, 46, 22), activeRadioAntenna != null && activeRadioAntenna.preset2 != "" ? Statics.stationList[activeRadioAntenna.preset2].abbr.ToString() : ""))
+            if (GUI.Button(preset2BtnRect, activeRadioAntenna != null && activeRadioAntenna.preset2 != "" ? Statics.stationList[activeRadioAntenna.preset2].abbr.ToString() : ""))
             {
                 if (activeRadioAntenna != null)
                 {
@@ -762,7 +855,7 @@ namespace KPRS
                     }
                 }
             }
-            if (GUI.Button(new Rect(297, 300, 46, 22), activeRadioAntenna != null && activeRadioAntenna.preset3 != "" ? Statics.stationList[activeRadioAntenna.preset3].abbr.ToString() : ""))
+            if (GUI.Button(preset3BtnRect, activeRadioAntenna != null && activeRadioAntenna.preset3 != "" ? Statics.stationList[activeRadioAntenna.preset3].abbr.ToString() : ""))
             {
                 if (activeRadioAntenna != null)
                 {
@@ -781,7 +874,7 @@ namespace KPRS
                     }
                 }
             }
-            if (GUI.Button(new Rect(365, 300, 46, 22), activeRadioAntenna != null && activeRadioAntenna.preset4 != "" ? Statics.stationList[activeRadioAntenna.preset4].abbr.ToString() : ""))
+            if (GUI.Button(preset4BtnRect, activeRadioAntenna != null && activeRadioAntenna.preset4 != "" ? Statics.stationList[activeRadioAntenna.preset4].abbr.ToString() : ""))
             {
                 if (activeRadioAntenna != null)
                 {
@@ -801,7 +894,7 @@ namespace KPRS
                     }
                 }
             }
-            if (GUI.Button(new Rect(433, 300, 46, 22), activeRadioAntenna != null && activeRadioAntenna.preset5 != "" ? Statics.stationList[activeRadioAntenna.preset5].abbr.ToString() : ""))
+            if (GUI.Button(preset5BtnRect, activeRadioAntenna != null && activeRadioAntenna.preset5 != "" ? Statics.stationList[activeRadioAntenna.preset5].abbr.ToString() : ""))
             {
                 if (activeRadioAntenna != null)
                 {
@@ -824,7 +917,7 @@ namespace KPRS
             // Now the 4 vertical buttons
             // 555x153
             // 591x172
-            if (GUI.Button(new Rect(555, 131, 40, 19), shuffleImg, btnCenter))
+            if (GUI.Button(shuffleImgRect, shuffleImg, btnCenter))
             {
                 if (activeRadioAntenna != null && activeRadioAntenna.StationSelected)
                 {
@@ -837,7 +930,7 @@ namespace KPRS
                 }
             }
             // 187
-            if (GUI.Button(new Rect(555, 165, 40, 19), shuffleNowImg, btnCenter))
+            if (GUI.Button(shuffleNowImgRect, shuffleNowImg, btnCenter))
             {
                 if (activeRadioAntenna != null)
                 {
@@ -845,12 +938,12 @@ namespace KPRS
                     playerOn = true;
                 }
             }
-            if (GUI.Button(new Rect(555, 199, 40, 19), "k"))
+            if (GUI.Button(kRect, "k"))
             {
 
             }
             // 187
-            if (GUI.Button(new Rect(555, 233, 40, 19), "l"))
+            if (GUI.Button(lRect, "l"))
             {
 
             }
@@ -860,13 +953,13 @@ namespace KPRS
             m.x = m.x - windowRect.x;
             m.y = m.y - windowRect.y;
 
-            GUI.Button(new Rect(539, 296, 36, 20), "v");
-            if ((new Rect(539, 296, 36, 20)).Contains(m) && (buttonDownFlag))
+            GUI.Button(volDownRect, "v");
+            if ((volDownRect).Contains(m) && (buttonDownFlag))
             {
                 lastAngle = volAngle = Mathf.Max(0, volAngle - 1);
             }
-            GUI.Button(new Rect(588, 296, 36, 20), "^");
-            if ((new Rect(588, 296, 36, 20)).Contains(m) && (buttonDownFlag))
+            GUI.Button(volUpRect, "^");
+            if ((volUpRect).Contains(m) && (buttonDownFlag))
             {
                 lastAngle = volAngle = Mathf.Min(300, volAngle + 1);
             }
@@ -926,7 +1019,7 @@ namespace KPRS
             }
 
             //Log.Info("Rotating image");
-            RotateImage(ButtonImage.Volume, ref dialImg, new Vector2(150, 150), volAngle);
+            RotateImage(ButtonImage.Volume, ref dialImg, volImgSizeSize, volAngle);
             doRotate = false;
             if (!volumeButtonDownFlag)
                 GUI.DragWindow();

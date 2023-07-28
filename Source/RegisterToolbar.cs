@@ -27,10 +27,19 @@ namespace KPRS
             labelFontBoldYellow = new GUIStyle(GUI.skin.label);
             labelFontBoldYellow.fontStyle = FontStyle.Bold;
             labelFontBoldYellow.normal.textColor = Color.yellow;
+            
+            radioLabelFontBoldYellow = new GUIStyle(GUI.skin.label);
+            radioLabelFontBoldYellow.fontStyle = FontStyle.Bold;
+            radioLabelFontBoldYellow.normal.textColor = Color.yellow;
+
 
             labelFontBoldBlue = new GUIStyle(GUI.skin.label);
             labelFontBoldBlue.fontStyle = FontStyle.Bold;
             labelFontBoldBlue.normal.textColor = Color.blue;
+
+            radioLabelFontBoldBlue = new GUIStyle(GUI.skin.label);
+            radioLabelFontBoldBlue.fontStyle = FontStyle.Bold;
+            radioLabelFontBoldBlue.normal.textColor = Color.blue;
 
             labelFontBoldLarge = new GUIStyle(GUI.skin.label);
             labelFontBoldLarge.fontStyle = FontStyle.Bold;
@@ -39,7 +48,7 @@ namespace KPRS
             labelFontBoldRed = new GUIStyle(GUI.skin.label);
             labelFontBoldRed.fontStyle = FontStyle.Bold;
             labelFontBoldRed.normal.textColor = Color.red;
-
+                
             vertScrollbarStyle = new GUIStyle(GUI.skin.verticalScrollbar);
 
         }
@@ -60,9 +69,9 @@ namespace KPRS
 
 #if true
         bool initted = false;
-        internal static GUIStyle labelFontBoldYellow;
+        internal static GUIStyle labelFontBoldYellow, radioLabelFontBoldYellow;
         internal static GUIStyle labelFontBoldRed;
-        internal static GUIStyle labelFontBoldBlue;
+        internal static GUIStyle labelFontBoldBlue, radioLabelFontBoldBlue;
         internal static GUIStyle vertScrollbarStyle;
         internal static GUIStyle labelFontBoldLarge;
 

@@ -8,5 +8,40 @@ BUGS
 
 TODO
 
-	Test reverts to editro and reverts to flight
+	Test reverts to editor and reverts to flight
 	Ease-in/Ease-out refers to the volume of the station
+
+
+	
+Radio UI and you need to use the Parts Manager Box to flip stations and activate things, its not really straight forward (took me a while to understand how this all worked). Is there a receiver that is required to pick up stations?
+
+	I assume you are referring to the PAW?  
+
+
+
+Radio Kicks out the minute the Kerbal leaves the ship (EVA it goes dark see screenshot) and other ships there is a dead period, 
+
+	I haven't even addressed EVA yet, not sure what to do.
+
+and when you go back to the ship it starts play at the beginning of the song, 
+I can see this as "Really" annoying. Rather have it where you are in physical range of a ship and 
+ideally there is a "ease-in/ease-out" if you can't do a hand-off to avoid the jarring. 
+"Ease-Out / Static / Ease-In" might be better, similar idea when turning radio on/off.
+
+
+What is the "Range" of the transmitters? I tossed a bunch of antennas as I though it was linked to that and then noted it was not.
+
+	Stock Antennas don't affect the range at this time, other than making it possible to receive a station.  Antennas on the tower do nothing for the mod, but you can use them for other stuff
+	The basic range is supposed to be from Kerbin to the Mun without any static
+	
+Last Note: Some of the Songs got flagged by YouTube on some of the other stations.
+
+	Understood, already updated the forum page and README
+
+
+Here is the Video - https://youtu.be/2zCqe0CV-iU 
+[7:02 AM]smushanoob: what songs specifically get flagged
+[8:42 AM]PicoSpace: I didn’t play through all the stations, but:
+Gaia
+Oceans of Time
+It’s a copyright claim, not a strike (just means they get any money off your video). So a heads up for YouTubers/streamers should be included in the readme 

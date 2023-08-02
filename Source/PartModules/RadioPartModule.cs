@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Steamworks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,12 +12,12 @@ namespace KPRS.PartModules
     //
     // This module is added by a ModuleManager script toall parts which have a DataTransmitter
     //
-    internal class RadioPartModule : PartModule, IModuleInfo
+    internal class RadioPartModule : PartModule, IModuleInfo, IResourceConsumer
     {
-        [KSPField(isPersistant =true)]
+        [KSPField(isPersistant = true)]
         internal float power = 1;// Preamp power
 
-        internal bool StationSelected {  get { return selectedStation!= null && selectedStation.Length > 0; } }
+        internal bool StationSelected { get { return selectedStation != null && selectedStation.Length > 0; } }
 
         [KSPField(isPersistant = true)]
         internal string selectedStation = "";
@@ -39,11 +40,33 @@ namespace KPRS.PartModules
         [KSPField(isPersistant = true)]
         internal string preset5 = "";
 
-        //[KSPField(isPersistant = true)]
-        //int volume = 0.4;     //multiplied by 12.5 to get a number between 0 and 100
+        private List<PartResourceDefinition> consumedResources;
+
+        public List<PartResourceDefinition> GetConsumedResources()
+        {
+            Log.Info("RadioPartModule.GetConsumedResources");
+            return consumedResources;
+        }
 
         [KSPField(isPersistant = true)]
         internal float preampPower = 0f;
+
+         override public void OnAwake()
+        {
+            if (consumedResources == null)
+                consumedResources = new List<PartResourceDefinition>();
+            else
+                consumedResources.Clear();
+
+            int i = 0;
+            for (int count = resHandler.inputResources.Count; i < count; i++)
+            {
+                consumedResources.Add(PartResourceLibrary.Instance.GetDefinition(resHandler.inputResources[i].name));
+            }
+            base.OnAwake();
+        }
+
+
         void Start()
         {
             Log.Info("RadioPartModule.Start");
@@ -53,7 +76,7 @@ namespace KPRS.PartModules
                 Log.Info("power: " + power);
                 Log.Info("selectedStation: " + selectedStation.ToString());
             }
-            
+
         }
 
         public string GetModuleTitle()
@@ -71,7 +94,7 @@ namespace KPRS.PartModules
         }
         public override string GetInfo()
         {
-            return "RadioPartModule";
+            return "KPRS Radio Receiver " + resHandler.PrintModuleResources();
         }
 
     }

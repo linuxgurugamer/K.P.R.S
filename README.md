@@ -31,8 +31,8 @@ A radio station will consist of the following:
 
 1.	Create a radio station.  There are three antenna parts, which can be stacked on top of each other to make a taller tower, the taller it is, the greater the range.  There is also a composite antenna, which consists of all the antenna tower parts together which will animate to be raised.
 1.5 To increase the power of the transmitter, attach multiple TransmitterBases to the antenna
-2.	Once placed, right-click on the transmitter base to select a channel
-3.  After selecting a channel, you need to activate it, again by right-clicking on the transmitter base
+2.	Once placed, right-click on the transmitter base to open the PAW and then select a channel
+3.  After selecting a channel, you need to activate it, again by right-clicking on the transmitter base to open the PAW and activate the transmitter
 
 Note:  The transmitter box by itself has a very limited range.  You need to add an antenna tower to get decent range.
 

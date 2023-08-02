@@ -1,7 +1,12 @@
 Changelog
 
-0.0.3
-	Added a scaled UI
+0.0.3 (unreleased)
+	Added a scaled UI (using horizontal slider at top of window)
+	Added scrolling text for currently playing song
+
+	Notes
+		1.  Due to limitations in the UI, the mouse will not stay on top of the  slider as you move it
+		2.  The scaling of the UI is also available in the stock setting page
 
 0.0.2.0
 	First public beta

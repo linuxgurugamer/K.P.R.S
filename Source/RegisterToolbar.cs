@@ -32,6 +32,7 @@ namespace KPRS
             radioLabelFontBoldYellow.fontStyle = FontStyle.Bold;
             radioLabelFontBoldYellow.normal.textColor = Color.yellow;
 
+            radioLabelNormal = new GUIStyle (GUI.skin.label);
 
             labelFontBoldBlue = new GUIStyle(GUI.skin.label);
             labelFontBoldBlue.fontStyle = FontStyle.Bold;
@@ -44,6 +45,7 @@ namespace KPRS
             labelFontBoldLarge = new GUIStyle(GUI.skin.label);
             labelFontBoldLarge.fontStyle = FontStyle.Bold;
             labelFontBoldLarge.fontSize = 22;
+            labelFontBoldLarge.wordWrap = false;
 
             labelFontBoldRed = new GUIStyle(GUI.skin.label);
             labelFontBoldRed.fontStyle = FontStyle.Bold;
@@ -69,7 +71,7 @@ namespace KPRS
 
 #if true
         bool initted = false;
-        internal static GUIStyle labelFontBoldYellow, radioLabelFontBoldYellow;
+        internal static GUIStyle labelFontBoldYellow, radioLabelFontBoldYellow, radioLabelNormal;
         internal static GUIStyle labelFontBoldRed;
         internal static GUIStyle labelFontBoldBlue, radioLabelFontBoldBlue;
         internal static GUIStyle vertScrollbarStyle;

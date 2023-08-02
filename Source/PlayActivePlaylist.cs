@@ -7,6 +7,21 @@ namespace KPRS
     public class PlayActivePlaylist
     {
         List<string> activePlaylistTracks = new List<string>();
+        string currentlyPlaying;
+        public string CurrentlyPlaying { set { currentlyPlaying = value; LetterCnt = 0; lastLetterCnt = -1; } get { if (currentlyPlaying == "") return "";  return "Currently Playing: " + currentlyPlaying + "  "; } }
+        public int LetterCnt {  get; set; }
+
+        string cachedCurrentlyPlaying = "";
+        int lastLetterCnt = -1;
+        public void CachedCurrentlyPlaying(string cache, int cnt)
+        {
+            cachedCurrentlyPlaying = cache;
+            lastLetterCnt = cnt;
+        }
+        public int LastLetterCnt {  get {  return lastLetterCnt; } }
+        public string GetCachedCurrentlyPlaying { get { return cachedCurrentlyPlaying; } }
+
+
         List<string> playlistTracks;
         string callsignTrack;
         bool callsignPlayed = false;
@@ -42,7 +57,10 @@ namespace KPRS
         internal void Clear(string caller)
         {
             if (activePlaylistTracks != null)
+            {
                 activePlaylistTracks.Clear();
+                CurrentlyPlaying = "";
+            }
             this.playlist = null;
             this.playlistTracks = null;
         }
@@ -55,6 +73,7 @@ namespace KPRS
             Clear("NewPlayActivePlayList");
 
             this.activePlaylistTracks = new List<string>(playlist.tracks);
+            CurrentlyPlaying = "";
             this.playlistTracks = playlist.tracks;
             this.callsignTrack = channelCallsign;
             callsignPlayed = false;
@@ -81,6 +100,8 @@ namespace KPRS
             KPBR.soundPlayer.StopSound();
 
             this.activePlaylistTracks = new List<string>(playlistTracks);
+            CurrentlyPlaying = "";
+
             activePlaylistTracks.Shuffle();
             Play("ShufflePlaylist");
         }
@@ -118,6 +139,7 @@ namespace KPRS
 #endif
                             KPBR.soundPlayer.PlaySound("PlayActivePlaylist.Play, removing item from index 0");
                             KPBR.soundPlayer.LoadNewSound(activePlaylistTracks[0]);
+                            CurrentlyPlaying = activePlaylistTracks[0].Substring(activePlaylistTracks[0].LastIndexOf('/')+1);
                             activePlaylistTracks.RemoveAt(0);
                         }
                         else

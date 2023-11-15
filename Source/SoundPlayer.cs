@@ -14,9 +14,9 @@ namespace KPRS
 {
     internal class SoundPlayer : MonoBehaviour
     {
-        //internal SoundPlayer Instance;
         GameObject soundPlayerObject;
         internal AudioSource audioSource;
+        float targetVolume;
         AudioClip loadedClip;
         string clipName = "";
         string playerName = "";
@@ -24,7 +24,6 @@ namespace KPRS
         internal bool readyToPlay = false;
         void Awake()
         {
-            //Instance = this;
             DontDestroyOnLoad(this);
             Log.Info("SoundPlayer.Awake");
         }
@@ -41,6 +40,34 @@ namespace KPRS
             StartCoroutine(LoadClipCoroutine(path));
         }
 
+        public void AdjustToTargetVolume(float volume)
+        {
+            audioSource.volume = targetVolume = volume;
+            return;
+
+            StopCoroutine(AdjustToTargetVolume());
+            targetVolume = volume;
+            StartCoroutine(AdjustToTargetVolume());
+        }
+
+        IEnumerator AdjustToTargetVolume()
+        {
+            Log.Info("AdjustToTargetVolume, targetVolume: " + targetVolume + ", volume: " + audioSource.volume);
+                
+            float volDiff = targetVolume - audioSource.volume;
+            if (volDiff > 0f)
+            {
+                audioSource.volume += Math.Min(0.1f, volDiff);
+            }
+            else
+            {
+                audioSource.volume -= Math.Min(0.1f, volDiff);
+            }
+            if (Math.Abs(volDiff) <= 0.1f)
+                yield return null;
+            yield return new WaitForSeconds(0.1f);
+        }
+
         IEnumerator LoadClipCoroutine(string path)
         {
 #if true
@@ -51,7 +78,7 @@ namespace KPRS
 
             loadingSong = true;
             UnityWebRequest req = UnityWebRequestMultimedia.GetAudioClip("file:///" + path, AudioType.OGGVORBIS);
-           // yield return req.SendWebRequest();
+            // yield return req.SendWebRequest();
             yield return req.SendWebRequest();
 
             loadedClip = DownloadHandlerAudioClip.GetContent(req);
@@ -114,7 +141,7 @@ namespace KPRS
             if (audioSource != null)
             {
                 audioSource.clip = loadedClip;
-                
+
                 if (audioSource.clip != null && !audioSource.isPlaying)
                 {
 #if false
@@ -122,7 +149,7 @@ namespace KPRS
 #endif
                     audioSource.Play();
                 }
-                
+
 #if false
                 Log.Info("audioSource.Volume: " + audioSource.volume);
 #endif
@@ -133,16 +160,19 @@ namespace KPRS
 
         public void SetVolume(float vol)
         {
-            if (audioSource != null)
+            if (audioSource != null && vol != targetVolume)
             {
-                audioSource.volume = vol;
+                //audioSource.volume = vol;
+                AdjustToTargetVolume(vol);
 #if false
-                Log.Info("SetVolume.audioSource.Volume: " + audioSource.volume);
+                Log.Info("SetVolume targetVolume: " + vol);
 #endif
             }
             else
-                Log.Error("SetVolume, audioSource is null");
-
+            {
+                if (audioSource == null)
+                    Log.Error("SetVolume, audioSource is null");
+            }
         }
 
         public void ToggleSound()
@@ -247,7 +277,9 @@ namespace KPRS
                 audioSource = soundPlayerObject.AddComponent<AudioSource>();
                 if (audioSource != null)
                 {
-                    audioSource.volume = 0.5f;
+                    //audioSource.volume = 0.5f;
+                    AdjustToTargetVolume(0.5f);
+
                     audioSource.spatialBlend = 0;
                     audioSource.loop = false;
                 }

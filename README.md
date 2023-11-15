@@ -29,9 +29,11 @@ A radio station will consist of the following:
 	3. Power supply.  Will need to be able to supply the needs of the transmitter box(es) and amplifiers
 	4. Optionally one or more amplifiers (each amplifier also needs 10 ec/sec)
 
-1.	Create a radio station.  There are three antenna parts, which can be stacked on top of each other to make a taller tower, the taller it is, the greater the range.  There is also a composite antenna, which consists of all the antenna tower parts together which will animate to be raised.
-1.5 To increase the power of the transmitter, attach multiple TransmitterBases to the antenna
-2.	Once placed, right-click on the transmitter base to open the PAW and then select a channel
+1.	Create a radio station.  There are three antenna parts, which can be stacked on top of each
+	other to make a taller tower, the taller it is, the greater the range.  There is also a composite
+	antenna, which consists of all the antenna tower parts together which will animate to be raised.
+1.5 To increase the power of the transmitter, attach multiple TransmitterBases to the antenna (not yet available)
+2.	Once placed, right-click on the transmitter box to open the PAW and then select a channel
 3.  After selecting a channel, you need to activate it, again by right-clicking on the transmitter base to open the PAW and activate the transmitter
 
 Note:  The transmitter box by itself has a very limited range.  You need to add an antenna tower to get decent range.
@@ -40,6 +42,7 @@ Receive radio broadcast
 
 1.  To receive, you need an antenna.  Currently all antennas have the ability to receive radio broadcasts, including command pods with built-in antennas.  Also, currently unmanned vessels also allow the receiver to be used
 2.  Once on a vessel, click the radio button to open the radio panel
+	1. Note:  The radio panel is scalable using the horizontal scroll bar at the top
 3.  All active channels are listed in the scrollbox.  Click on a channel to select it.
 4.  The five buttons right below are to save selected channels.  Right click on a button to either clear or save the current channel
 

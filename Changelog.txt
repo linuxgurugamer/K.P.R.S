@@ -1,7 +1,8 @@
-Changelog
 
-0.0.3 (unreleased)
-	Added a scaled UI (using horizontal slider at top of window)
+0.0.4
+	First full beta on the forums
+
+0.0.3 (unreleas	Added a scaled UI (using horizontal slider at top of window)
 	Added scrolling text for currently playing song
 
 	Notes

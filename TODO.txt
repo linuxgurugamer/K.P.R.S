@@ -3,13 +3,12 @@ KPRS - Kerbal Public Radio Service
 
 BUGS
 
-
+	Radio continues playing after transmitter runs out of power, but scroll view does properly change color
 
 
 TODO
 
-	Test reverts to editor and reverts to flight
-	Ease-in/Ease-out refers to the volume of the station
+	
 
 
 	

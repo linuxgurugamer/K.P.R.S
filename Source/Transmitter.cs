@@ -12,14 +12,24 @@ namespace KPRS
         internal string selectedStation;
         internal Vessel vessel;
         internal float towerHeight;
+        internal KPBR_TransmitterPartModule transPartModule;
+        private bool active;
+        internal bool Active 
+        { 
+            get 
+            {
+                Log.Info("Transmitter: selectedStation: " + selectedStation + ", HasPower: " + transPartModule.HasPower + ", active: " + active);
+                return active & transPartModule.HasPower; 
+            } 
+            set { active = value; } 
+        }
 
-        internal bool Active { get; set; }
-
-        internal void InitTransmitter(string selStat, string loc = null, Vessel vessel = null, bool active = true)
+        internal void InitTransmitter(KPBR_TransmitterPartModule t, string selStat, string loc = null, Vessel vessel = null, bool active = true)
         {
             location = loc;
             selectedStation = selStat;
             this.vessel = vessel;
+            this.transPartModule = t;
             this.Active = active;
             GetTowerHeight();
         }
@@ -27,7 +37,14 @@ namespace KPRS
         internal Transmitter(string selStat, string loc, Vessel vessel, bool active)
         {
             //Log.Info("Transmitter 1, active: " + active);
-            InitTransmitter(selStat, loc, vessel, active);
+            var transmitterPartModuleList = vessel.FindPartModulesImplementing<KPBR_TransmitterPartModule>();
+            foreach (var t in transmitterPartModuleList)
+            {
+                if (t.selectedStation == selStat && t.location!=null)
+                {
+                    InitTransmitter(t, selStat, loc, vessel, active);
+                }
+            }
 
             //Active = true;
         }
@@ -35,7 +52,7 @@ namespace KPRS
         internal Transmitter(KPBR_TransmitterPartModule t)
         {
             Log.Info("Transmitter 2, active: " + t.Active);
-            InitTransmitter( t.selectedStation, t.location,t.part.vessel, t.Active);
+            InitTransmitter(t, t.selectedStation, t.location,t.part.vessel, t.Active);
 
         }
 

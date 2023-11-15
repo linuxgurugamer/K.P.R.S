@@ -214,12 +214,13 @@ namespace KPRS
             {
                 soundPlayer.StopSound();
                 staticSoundPlayer.StopSound();
+                playerOn = false;
                 if (playActivePlaylist != null)
                     playActivePlaylist.Clear("onVesselChange");
                 volumesInitted = false;
                 guiActive = false;
 
-                volAngle = lastAngle = HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().initialVolume;
+                volAngle = lastAngle = 300 * HighLogic.CurrentGame.Parameters.CustomParams<StockSettings>().initialVolume;
 
             }
         }
@@ -589,7 +590,7 @@ namespace KPRS
             activeRadioAntenna.selectedStation = selectedStation;
             if (!Statics.stationList.ContainsKey(selectedStation))
                 Log.Error("Station not found in stationlist: " + selectedStation);
-            var s = Statics.stationList[activeRadioAntenna.selectedStation];
+            Station s = Statics.stationList[activeRadioAntenna.selectedStation];
             Log.Info("Station: " + selectedStation + ", playlist: " + s.playlist);
             Log.Info("Playlist info: " + Statics.playlist[s.playlist].ToString());
 
@@ -605,7 +606,8 @@ namespace KPRS
 
         void ClearSelectedStation(string selectedStation)
         {
-            playActivePlaylist.Clear("ClearSelectedStation, activeRadioAntenna.selectedStation: " + activeRadioAntenna.selectedStation);
+            if (playActivePlaylist != null)
+                playActivePlaylist.Clear("ClearSelectedStation, activeRadioAntenna.selectedStation: " + activeRadioAntenna.selectedStation);
         }
 
         bool buttonDownFlag = false;
@@ -635,7 +637,7 @@ namespace KPRS
                 inRads = 2 * Mathf.PI - inRads;
 
             var a = Mathf.Rad2Deg * inRads - 90;
-            a = (a < 0) ? a + 360 : a;
+            a = (a < -30f) ? a + 360 : Math.Max(0, a);
             return Mathf.Round(a);
         }
 
@@ -690,6 +692,8 @@ namespace KPRS
 
         string GetCurrentlyPlaying()
         {
+            if (playActivePlaylist == null)
+                return "";
             if (playActivePlaylist.CurrentlyPlaying.Length <= MAXLINELEN)
             {
                 return playActivePlaylist.CurrentlyPlaying;
@@ -745,6 +749,8 @@ namespace KPRS
 
                 stationPos = GUI.BeginScrollView(stationRect, stationPos, viewRect, false, true, GUIStyle.none, RegisterToolbar.vertScrollbarStyle);
                 float lineCnt = 1;
+                int activeTransCnt = 0;
+                string firstActiveTrans = null;
                 foreach (var transmitter in Statics.transmitterList)
                 {
                     Station station = null;
@@ -762,6 +768,8 @@ namespace KPRS
                         {
                             if (transmitter.Value.location != null && transmitter.Value.location != "" && transmitter.Value.Active)
                             {
+                                activeTransCnt++;
+                                if (firstActiveTrans == null) { firstActiveTrans = transmitter.Key; }
                                 if (GUI.Button(btnRec, channelDescr, radioLabelFontBoldYellow))
                                 {
                                     soundPlayer.StopSound();
@@ -816,6 +824,13 @@ namespace KPRS
                     }
                 }
                 GUI.EndScrollView();
+                if (activeTransCnt == 1 && activeRadioAntenna == null)
+                {
+                    if (activeRadioAntenna == null)
+                        activeRadioAntenna = FlightGlobals.ActiveVessel.FindPartModuleImplementing<RadioPartModule>();
+
+                    PlaySelectedStation(firstActiveTrans);
+                }
             }
 
             // leds
@@ -833,9 +848,26 @@ namespace KPRS
             //alignment = TextAnchor.MiddleCenter;
             if (GUI.Button(powerBtnRect, powerImg, btnCenter)) // style: NonSelectableWindowStyle))
             {
-                playerOn = !playerOn;
-                soundPlayer.ToggleSound();
-                staticSoundPlayer.ToggleSound();
+                bool b = false;
+                if (playerOn)
+                {
+                    foreach (var transmitter in Statics.transmitterList)
+                    {
+                        if (transmitter.Value.location != null && transmitter.Value.location != "" && transmitter.Value.Active)
+                        {
+                            if (transmitter.Key == activeRadioAntenna.selectedStation)
+                            {
+                                b = true;
+                            }
+                        }
+                    }
+                }
+                if ((b && !playerOn) || playerOn)
+                {
+                    playerOn = !playerOn;
+                    soundPlayer.ToggleSound();
+                    staticSoundPlayer.ToggleSound();
+                }
             }
             if (GUI.Button(preAmpDownRect, "↓"))
             {
@@ -1050,7 +1082,10 @@ namespace KPRS
                 else
                 {
                     if (activeRadioAntenna.selectedStation != "")
+                    {
                         Log.Error("Missing key in Statics.transmitterlist: " + activeRadioAntenna.selectedStation);
+                        activeRadioAntenna.selectedStation = "";
+                    }
                     staticSoundPlayer.SetVolume(radioVolume);
                 }
             }

@@ -31,6 +31,8 @@ namespace KPRS.PartModules
         [KSPField(isPersistant = true)]
         public bool Active = true;
 
+        public bool HasPower = true;
+
         internal bool LocationSelected { get { return location != null && location.Length > 0; } }
 
         internal const float TRANS_SEL_HEIGHT = 400f;
@@ -235,7 +237,7 @@ namespace KPRS.PartModules
                             {
                                 Events["ActivateStation"].guiActive = false;
                                 Events["DeactivateStation"].guiActive = false;
-                            } 
+                            }
                             else
                             {
                                 Events["ActivateStation"].guiActive = true;
@@ -356,7 +358,7 @@ namespace KPRS.PartModules
         public override string GetInfo()
         {
             var sb = new StringBuilder();
-            sb.AppendLine("KPBR_Radio Transmitter" );
+            sb.AppendLine("KPBR_Radio Transmitter");
 
             sb.AppendLine();
 
@@ -371,16 +373,18 @@ namespace KPRS.PartModules
 
         public void FixedUpdate()
         {
-            if (location != null)
+            if (location != null && location != "")
             {
                 var demand = consumeRate * TimeWarp.deltaTime;
                 double PowerDemand = part.RequestResource("ElectricCharge", demand);
                 // Yuck, floating point error here, need to add a tiny bit to demand to bypass
-                if (PowerDemand + 0.000001f< demand )
+                if (PowerDemand + 0.000001f < demand)
                 {
-                    Log.Info("FixedUpdate, demand: " + demand  + ", PowerDemand: " + PowerDemand + ", consumeRate: " + consumeRate + ", deltaTime: " + TimeWarp.deltaTime);
-                    Active = false;
+                    Log.Info("FixedUpdate, demand: " + demand + ", PowerDemand: " + PowerDemand + ", consumeRate: " + consumeRate + ", deltaTime: " + TimeWarp.deltaTime);
+                    HasPower = false;
                 }
+                else
+                    HasPower = true;
             }
         }
 
@@ -523,6 +527,6 @@ namespace KPRS.PartModules
 #endregion BackgroundProcessing
 #endif
 
-        }
+    }
 
 }

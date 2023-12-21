@@ -8,7 +8,7 @@ Tower models made by @wyleg
 Additional model work done by @AlphaMensae
 
 
-https://discord.com/channels/1113137628305440818/1122881120942432337
+https://discord.com/channels/1113137628305440818/1122881120942432337 
 
 Dependencies
 	Toolbar Controller

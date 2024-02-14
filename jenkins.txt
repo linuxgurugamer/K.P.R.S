@@ -28,10 +28,10 @@
 # 0:1.3
 
 # 1:GAMEDIR, VERSIONFILE [, GITHUBREPO ]
-1:KPRS, KPRS.version
+1:KPRS, K.P.R.S.version
 
 # 2:PROJNAME, PROJFILE, VERSIONFILE, PLUGINSFOLDER
-2:K.P.R.S,Source/K.P.R.S.csproj,KPRS.version,GameData/KPRS/Plugins
+2:K.P.R.S,Source/K.P.R.S.csproj,K.P.R.S.version,GameData/KPRS/Plugins
 
 # 3:SOURCEFILE, DESTDIR
 3:KPRS.version,GameData/KPRS

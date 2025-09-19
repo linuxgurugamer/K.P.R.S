@@ -33,7 +33,7 @@
 	//
 	// Update the following with the name of the .version file which is in the root directory
 	//
-	string versionfile = RootDirectory + "KPRS.version";
+	string versionfile = RootDirectory + "K.P.R.S.version";
 
 
 	if (!File.Exists(versionfile))

@@ -1,26 +1,26 @@
 {
   "NAME": "K.P.R.S.",
-  "URL": "http://ksp.spacetux.net/avc/K.P.R.S",
-  "DOWNLOAD": "https://spacedock.info/mod/zzz/K.P.R.S",
+  "URL": "https://raw.githubusercontent.com/linuxgurugamer/K.P.R.S/refs/heads/main/K.P.R.S.version",
+  "DOWNLOAD": "https://github.com/linuxgurugamer/K.P.R.S/releases",
   "VERSION": {
     "MAJOR": 0,
     "MINOR": 0,
     "PATCH": 4,
-    "BUILD": 0
+    "BUILD": 1
   },
   "KSP_VERSION": {
     "MAJOR": 1,
     "MINOR": 12,
     "PATCH": 5
   },
-  "KSP_VERSION_MAX": {
-    "MAJOR": 1,
-    "MINOR": 12,
-    "PATCH": 99
-  },
   "KSP_VERSION_MIN": {
     "MAJOR": 1,
     "MINOR": 11,
     "PATCH": 1
+  },
+  "KSP_VERSION_MAX": {
+    "MAJOR": 1,
+    "MINOR": 12,
+    "PATCH": 99
   }
 }
